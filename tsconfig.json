@@ -27,6 +27,7 @@
         "moduleDetection": "force",
         "target": "ESNext",
         "incremental": true,
+        "tsBuildInfoFile": "./.cache/.tsbuildinfo",
         "skipLibCheck": true
     },
     "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
