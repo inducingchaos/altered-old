@@ -1,0 +1,45 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+    prebuild:
+        name: Pre-Build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Initialize Bun
+              uses: oven-sh/setup-bun@v1
+              with:
+                  bun-version: latest
+
+            - name: Cache Node Modules
+              uses: actions/cache@v4
+              with:
+                  path: ./node_modules
+                  key: ${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+
+            - name: Cache ESLint
+              uses: actions/cache@v4
+              with:
+                  path: ./.cache/.eslintcache
+                  key: ${{ runner.os }}-${{ hashFiles('bun.lockb', '.eslintrc.cjs') }}
+
+            - name: Install Packages
+              run: bun i --frozen-lockfile
+
+            - name: Format
+              run: bun run format
+
+            - name: Lint Code
+              run: bun run lint
+
+            - name: Check Types
+              run: bun run typecheck
+
+            - name: Verify Commit
+              run: bunx commitlint --from HEAD~1 --to HEAD --verbose

@@ -1,18 +1,50 @@
-import type { Config } from "tailwindcss";
+/**
+ *
+ */
+
+import typography from "@tailwindcss/typography"
+import { type Config } from "tailwindcss"
+import animate from "tailwindcss-animate"
+// import {
+//     animation,
+//     backdropBlur,
+//     borderRadius,
+//     borderWidth,
+//     colors,
+//     fontFamily,
+//     fontSize,
+//     keyframes,
+//     opacity,
+//     spacing,
+//     transitionDuration,
+//     transitionTimingFunction
+// } from "./src/config/external/tailwind"
 
 export default {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config;
+    darkMode: ["class"],
+    content: ["./src/{app,components,domains,_ignore/experimental}/**/*.{js,ts,jsx,tsx,mdx}"],
+
+    // theme: {
+    //     spacing,
+    //     opacity,
+
+    //     fontFamily,
+    //     fontSize,
+
+    //     borderWidth,
+    //     borderRadius,
+
+    //     transitionDuration,
+    //     transitionTimingFunction,
+
+    //     backdropBlur,
+    //     extend: {
+    //         colors,
+
+    //         animation,
+    //         keyframes
+    //     }
+    // },
+
+    plugins: [animate, typography]
+} satisfies Config

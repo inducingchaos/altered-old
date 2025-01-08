@@ -1,7 +1,14 @@
-import type { NextConfig } from "next";
+/**
+ *
+ */
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+import type { NextConfig } from "next"
 
-export default nextConfig;
+export default {
+    experimental: {
+        ppr: true,
+        dynamicIO: true
+    },
+    typescript: { ignoreBuildErrors: true },
+    eslint: { ignoreDuringBuilds: true }
+} satisfies NextConfig
