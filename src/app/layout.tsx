@@ -8,6 +8,21 @@ import type { JSX, ReactNode } from "react"
 
 import { geist, geistMono, hoeflerText, inter, pxGrotesk, pxGroteskMono, saans } from "@sdkit/styles/fonts"
 
+export type TitleSeparator = "colon" | "pipe" | "em-dash" | "dash"
+
+export function getTitleSeparator({ for: separator }: { for: TitleSeparator }): string {
+    switch (separator) {
+        case "colon":
+            return ": "
+        case "pipe":
+            return " | "
+        case "em-dash":
+            return " — "
+        case "dash":
+            return " - "
+    }
+}
+
 const project = {
     info: {
         name: "ALTERED",
@@ -16,8 +31,10 @@ const project = {
     }
 }
 
+const titleSeparator: TitleSeparator = "pipe"
+
 export const metadata: Metadata = {
-    title: `${project.info.name} | ${project.info.tagline}`,
+    title: `${project.info.name}${getTitleSeparator({ for: titleSeparator })}${project.info.tagline}`,
     description: project.info.description,
     icons: [{ rel: "icon", url: "/design/favicon.png" }],
     keywords: null
