@@ -5,46 +5,47 @@
 import typography from "@tailwindcss/typography"
 import { type Config } from "tailwindcss"
 import animate from "tailwindcss-animate"
-// import {
-//     animation,
-//     backdropBlur,
-//     borderRadius,
-//     borderWidth,
-//     colors,
-//     fontFamily,
-//     fontSize,
-//     keyframes,
-//     opacity,
-//     spacing,
-//     transitionDuration,
-//     transitionTimingFunction
-// } from "./src/config/external/tailwind"
+
+import {
+    animation,
+    backdropBlur,
+    borderRadius,
+    borderWidth,
+    colors,
+    fontFamily,
+    fontSize,
+    keyframes,
+    opacity,
+    spacing,
+    transitionDuration,
+    transitionTimingFunction
+} from "./src/packages/sdkit/src/config/external/tailwind"
 
 export default {
     darkMode: ["class"],
     content: ["./src/{app,components,domains,_ignore/experimental}/**/*.{js,ts,jsx,tsx,mdx}"],
 
-    // theme: {
-    //     spacing,
-    //     opacity,
+    theme: {
+        spacing,
+        opacity,
 
-    //     fontFamily,
-    //     fontSize,
+        fontFamily,
+        fontSize,
 
-    //     borderWidth,
-    //     borderRadius,
+        borderWidth,
+        borderRadius,
 
-    //     transitionDuration,
-    //     transitionTimingFunction,
+        transitionDuration,
+        transitionTimingFunction,
 
-    //     backdropBlur,
-    //     extend: {
-    //         colors,
+        backdropBlur,
+        extend: {
+            colors,
 
-    //         animation,
-    //         keyframes
-    //     }
-    // },
+            animation,
+            keyframes
+        }
+    },
 
     plugins: [animate, typography]
 } satisfies Config

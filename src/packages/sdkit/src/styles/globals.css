@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Definition. */
+
+        --color-white: 0 0% 100%;
+        --color-off-white: 0 0% 93.75%;
+        --color-way-off-white: 0 0% 87.5%;
+
+        --color-black: 0 0% 0%;
+        --color-off-black: 0 0% 6.25%;
+        --color-way-off-black: 0 0% 25%;
+
+        --color-gray: 0 0% 50%;
+        --color-amber: 37.5 100% 50%;
+        --color-red: 0 100% 46.875%;
+        --color-green: 120 100% 43.75%;
+        --color-blue: 210 100% 50%;
+
+        --color-khaki: 45 12.5% 50%;
+        --color-khaki-light: 45 50% 87.5%;
+        --color-khaki-dark: 45 12.5% 25%;
+
+        --ease-in-expo: cubic-bezier(0.75, 0, 0.875, 0);
+        --ease-out-expo: cubic-bezier(0.125, 1, 0.25, 1);
+        --ease-in-out-expo: cubic-bezier(0.875, 0, 0.125, 1);
+
+        /* Configuration. */
+
+        --color-main: var(--color-way-off-black);
+        --color-main-constant: var(--color-way-off-black);
+        --color-neutral: var(--color-gray);
+        --color-alternate: var(--color-white);
+        --color-alternate-constant: var(--color-white);
+
+        --color-warning: var(--color-amber);
+        --color-danger: var(--color-red);
+        --color-success: var(--color-green);
+        --color-info: var(--color-blue);
+
+        --color-accent: var(--color-khaki-dark);
+        --color-accent-constant: var(--color-khaki-dark);
+        --color-accent-neutral: var(--color-khaki);
+        --color-accent-alternate: var(--color-khaki-light);
+        --color-accent-alternate-constant: var(--color-khaki-light);
+
+        --border-width: 2px;
+        --border-radius: 0px;
+
+        --ease-in: var(--ease-in-expo);
+        --ease-out: var(--ease-out-expo);
+        --ease-in-out: var(--ease-in-out-expo);
+    }
+    .dark {
+        /* Overrides. */
+
+        --color-main: var(--color-white);
+        --color-alternate: var(--color-off-black);
+        --color-accent: var(--color-khaki-light);
+        --color-accent-alternate: var(--color-khaki-dark);
+    }
+
+    body {
+        @apply bg-alternate text-main;
+    }
+
+    * {
+        @apply border-main/eighth;
+    }
+}
+
+* {
+    min-width: 0;
+}

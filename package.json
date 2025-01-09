@@ -25,7 +25,7 @@
         "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio",
         "execute": "sh -c 'IFS=\"\" tsx --env-file ./.env ./src/scripts/$@.ts $*' sh",
-        "stabilize": "tsx ./src/scripts/stabilize.ts"
+        "sdkit:execute": "sh -c 'IFS=\"\" tsx --env-file ./.env ./src/packages/sdkit/src/scripts/$@.ts $*' sh"
     },
     "dependencies": {
         "@ai-sdk/openai": "^1.0.15",
