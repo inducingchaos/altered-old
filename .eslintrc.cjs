@@ -35,7 +35,6 @@ const config = {
         "max-len": ["warn", { code: 9999 }],
         quotes: ["warn", "double", { avoidEscape: true }],
         "import/no-anonymous-default-export": "off",
-        "sort-imports": ["error", { ignoreDeclarationSort: true }],
         "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db", "ctx.db"] }],
         "no-throw-literal": "off",
         "tailwindcss/classnames-order": "warn",
