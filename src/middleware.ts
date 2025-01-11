@@ -4,8 +4,6 @@
 
 import { NextResponse, type NextRequest } from "next/server"
 
-export const config = { matcher: ["/((?!_next|api|_static|_vercel|[\\w-]+\\.\\w+).*)"] }
-
 export async function middleware(request: NextRequest): Promise<NextResponse> {
     const { hostname, pathname, search, hash } = request.nextUrl
 
@@ -15,7 +13,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
             { status: 308 }
         )
 
-    if (hostname.endsWith("kaitype.co"))
+    if (hostname.endsWith("kaitype.co") && !pathname.startsWith("/_next") && !pathname.startsWith("/api"))
         return NextResponse.rewrite(new URL(`/kaitype${pathname}${search}${hash}`, request.url))
 
     return NextResponse.next()
