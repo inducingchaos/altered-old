@@ -4,7 +4,7 @@
 
 import { NextResponse, type NextRequest } from "next/server"
 
-export const config = { matcher: ["/((?!_next|api).*)"] }
+export const config = { matcher: ["/((?!_next|api|_static|_vercel|[\\w-]+\\.\\w+).*)"] }
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
     const { hostname, pathname, search, hash } = request.nextUrl
