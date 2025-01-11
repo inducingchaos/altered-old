@@ -55,8 +55,6 @@
         --ease-in-out: var(--ease-in-out-expo);
     }
     .dark {
-        /* Overrides. */
-
         --color-main: var(--color-white);
         --color-alternate: var(--color-off-black);
         --color-accent: var(--color-khaki-light);

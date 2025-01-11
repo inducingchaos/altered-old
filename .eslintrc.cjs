@@ -30,20 +30,11 @@ const config = {
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/explicit-function-return-type": "warn",
         "@typescript-eslint/no-floating-promises": "error",
-        "@typescript-eslint/strict-boolean-expressions": "warn",
         "comma-dangle": ["warn", "never"],
         indent: ["off", 4, { SwitchCase: 1 }],
         "max-len": ["warn", { code: 9999 }],
         quotes: ["warn", "double", { avoidEscape: true }],
         "import/no-anonymous-default-export": "off",
-        "import/order": [
-            "error",
-            {
-                groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-                "newlines-between": "always",
-                alphabetize: { order: "asc" }
-            }
-        ],
         "sort-imports": ["error", { ignoreDeclarationSort: true }],
         "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db", "ctx.db"] }],
         "no-throw-literal": "off",

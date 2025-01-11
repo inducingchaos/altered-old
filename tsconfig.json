@@ -11,7 +11,8 @@
         "moduleResolution": "Bundler",
         "paths": {
             "~/*": ["./src/*"],
-            "@sdkit/*": ["./src/packages/sdkit/src/*"]
+            "@sdkit/*": ["./src/packages/sdkit/src/*"],
+            "@kaitype/*": ["./src/projects/kaitype/*"]
         },
         "resolveJsonModule": true,
         "noEmit": true,
@@ -30,6 +31,6 @@
         "tsBuildInfoFile": "./.cache/.tsbuildinfo",
         "skipLibCheck": true
     },
-    "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+    "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts", ".eslintrc.cjs"],
     "exclude": ["node_modules"]
 }

@@ -19,7 +19,7 @@ import {
     spacing,
     transitionDuration,
     transitionTimingFunction
-} from "./src/packages/sdkit/src/config/external/tailwind"
+} from "./src/packages/sdkit/src/defaults/config/external/tailwind"
 
 export default {
     darkMode: ["class"],
