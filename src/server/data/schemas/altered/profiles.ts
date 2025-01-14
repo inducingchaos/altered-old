@@ -5,8 +5,8 @@
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
 import { int, varchar } from "drizzle-orm/mysql-core"
-import { users } from "."
-import { createAlteredMysqlTable } from "../helpers"
+import { users } from "./auth"
+import { createAlteredMysqlTable } from "./helpers"
 
 export const profiles = createAlteredMysqlTable("profiles", {
     id: int("id").autoincrement().primaryKey(),
