@@ -52,6 +52,7 @@
         "@tanstack/react-table": "^8.20.6",
         "@upstash/qstash": "^2.7.20",
         "@vercel/analytics": "^1.4.1",
+        "@vercel/sdk": "^1.2.2",
         "@vercel/speed-insights": "^1.1.0",
         "ai": "^4.0.30",
         "arctic": "^1.9.2",
