@@ -40,7 +40,8 @@ export async function getDeploymentInfo(): Promise<DeploymentInfo> {
                         day: "2-digit",
                         hour: "numeric",
                         minute: "2-digit",
-                        hour12: true
+                        hour12: true,
+                        timeZone: "America/Edmonton"
                     })
                     .replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2"),
                 createdIn,
