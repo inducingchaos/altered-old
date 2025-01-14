@@ -6,7 +6,7 @@ import { type Config } from "drizzle-kit"
 import { createUrl } from "@sdkit/utils/db/connection/planetscale"
 
 export default {
-    schema: ["./src/server/data/schemas"],
+    schema: ["./src/server/data/schemas/altered", "./src/server/data/schemas/iiinput"],
     dialect: "mysql",
     dbCredentials: {
         url: createUrl({

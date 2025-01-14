@@ -3,26 +3,22 @@
  */
 
 import { relations } from "drizzle-orm"
-import { index, int, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { int, timestamp, varchar } from "drizzle-orm/mysql-core"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
 import { createIiinputMysqlTable } from "./helpers"
 import { thoughts } from "./thoughts"
 
-export const attachments = createIiinputMysqlTable(
-    "attachments",
-    {
-        id: int("id").autoincrement().primaryKey(),
-        userId: int("user_id").notNull(),
-        thoughtId: int("thought_id").notNull(),
+export const attachments = createIiinputMysqlTable("attachments", {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull(),
+    thoughtId: int("thought_id").notNull(),
 
-        url: varchar("url", { length: 2048 }).notNull().unique(),
+    url: varchar("url", { length: 2048 }).notNull(),
 
-        createdAt: timestamp("created_at").notNull().defaultNow(),
-        updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
-    },
-    attachment => [index("url_idx").on(attachment.url)]
-)
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+})
 
 export const attachmentsRelations = relations(attachments, ({ one }) => ({
     user: one(users, {

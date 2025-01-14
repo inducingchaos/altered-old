@@ -18,7 +18,7 @@ export const tokens = createAlteredMysqlTable(
 
         type: varchar("type", { length: 255, enum: tokenTypes }).notNull(),
         value: varchar("value", { length: 255 }).notNull(),
-        
+
         expiresAt: timestamp("expires_at").notNull()
     },
     token => [index("type_idx").on(token.type)]
