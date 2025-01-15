@@ -2,11 +2,10 @@
  * Raycast ingest API routes for thoughts
  */
 
-import Fuse from "fuse.js"
 import { type NextRequest, NextResponse } from "next/server"
 import { Exception } from "~/packages/sdkit/src/meta"
 import { db } from "~/server/data"
-import { createThought, getThoughts } from "~/server/data/access/iiinput/thoughts"
+import { createThought } from "~/server/data/access/iiinput/thoughts"
 import type { CreatableThought } from "~/server/data/schemas/iiinput"
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -63,36 +62,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
     try {
-        const searchParams = new URL(request.url).searchParams
-        const query = searchParams.get("q") ?? ""
+        // const searchParams = new URL(request.url).searchParams
+        // const query = searchParams.get("q") ?? ""
 
-        const allThoughts = await getThoughts({
-            where: {
-                userId: 1
-            },
-            from: db
-        })
+        // const allThoughts = await getThoughts({
+        //     where: {
+        //         userId: 1
+        //     },
+        //     from: db
+        // })
 
-        if (query) {
-            const fuse = new Fuse(allThoughts, {
-                keys: ["content"],
-                threshold: 0.4,
-                includeScore: true
-            })
+        // if (query) {
+        //     const fuse = new Fuse(allThoughts, {
+        //         keys: ["content"],
+        //         threshold: 0.4,
+        //         includeScore: true
+        //     })
 
-            const searchResults = fuse.search(query)
-            const matchedThoughts = searchResults.map(result => result.item)
+        //     const searchResults = fuse.search(query)
+        //     const matchedThoughts = searchResults.map(result => result.item)
 
-            const sortedThoughts = matchedThoughts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()).slice(0, 25)
+        //     const sortedThoughts = matchedThoughts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()).slice(0, 25)
 
-            return NextResponse.json(sortedThoughts)
+        //     return NextResponse.json(sortedThoughts)
+        // }
+
+        // const recentThoughts = allThoughts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()).slice(0, 25)
+
+        // return NextResponse.json(recentThoughts)
+
+        const mockData = {
+            id: 1,
+            content: "This is a test thought.",
+            userId: 1,
+            attachmentId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
-        const recentThoughts = allThoughts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()).slice(0, 25)
-
-        return NextResponse.json(recentThoughts)
+        return NextResponse.json(mockData)
     } catch {
         return NextResponse.json({ error: "Failed to fetch thoughts." }, { status: 500 })
     }
