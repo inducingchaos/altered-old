@@ -102,7 +102,7 @@ export async function GET(): Promise<NextResponse> {
             updatedAt: new Date()
         }
 
-        return NextResponse.json(mockData)
+        return NextResponse.json([mockData])
     } catch {
         return NextResponse.json({ error: "Failed to fetch thoughts." }, { status: 500 })
     }
