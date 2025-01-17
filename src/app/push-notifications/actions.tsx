@@ -30,7 +30,7 @@ export async function sendNotification(message: string): Promise<{ success: bool
         await _sendNotification(
             subscription,
             JSON.stringify({
-                title: "Test Notification",
+                title: "Reminder",
                 body: message,
                 icon: "/brand/app-icon-192x192.png"
             })

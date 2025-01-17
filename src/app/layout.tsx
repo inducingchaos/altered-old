@@ -18,6 +18,8 @@ import {
 
 import "~/styles/overrides.css"
 
+import { NotificationProvider } from "~/notifications/useNotification"
+
 export const metadata = createPageMetadata({ using: config })
 
 export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
@@ -27,7 +29,9 @@ export default function RootLayout({ children }: { children: ReactNode }): JSX.E
             suppressHydrationWarning
             className={`${pxGrotesk.variable} ${pxGroteskMono.variable} ${hoeflerText.variable} ${saans.variable} ${inter.variable} ${geist.variable} ${geistMono.variable} [.font-mono]:tracking-tighter tracking-normal`}
         >
-            <body>{children}</body>
+            <body>
+                <NotificationProvider>{children}</NotificationProvider>
+            </body>
         </html>
     )
 }
