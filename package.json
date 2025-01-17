@@ -18,7 +18,7 @@
         "dev": "next dev --turbo --port 5873",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0 --cache --cache-strategy content --cache-location ./.cache/.eslintcache",
+        "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.cjs,.mjs,.eslintrc.cjs --report-unused-disable-directives --max-warnings 0 --cache --cache-strategy content --cache-location ./.cache/.eslintcache",
         "format": "prettier --write --log-level warn .",
         "typecheck": "tsc",
         "prepare": "husky",
