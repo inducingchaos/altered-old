@@ -31,6 +31,6 @@
         "tsBuildInfoFile": "./.cache/.tsbuildinfo",
         "skipLibCheck": true
     },
-    "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts", ".eslintrc.cjs"],
+    "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
     "exclude": ["node_modules"]
 }
