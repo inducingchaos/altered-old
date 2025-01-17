@@ -3,11 +3,7 @@
 import { setVapidDetails, sendNotification as _sendNotification, type PushSubscription as _PushSubscription } from "web-push"
 import config from "~/config"
 
-setVapidDetails(
-    `mailto:${config.brand.emails.support}`,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-)
+setVapidDetails(`mailto:${config.brand.emails.support}`, process.env.NEXT_PUBLIC_VAPID!, process.env.VAPID_SECRET!)
 
 let subscription: _PushSubscription | null = null
 
