@@ -42,7 +42,11 @@ function PushNotificationManager(): JSX.Element {
         setSubscription(sub)
     }
 
+    const [wasClicked, setWasClicked] = useState(false)
+
     async function subscribeToPush(): Promise<void> {
+        setWasClicked(true)
+
         const registration = await navigator.serviceWorker.ready
         const sub = await registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -91,6 +95,7 @@ function PushNotificationManager(): JSX.Element {
                     <button onClick={subscribeToPush}>Subscribe</button>
                 </>
             )}
+            {wasClicked && <p>You clicked the button</p>}
         </div>
     )
 }
