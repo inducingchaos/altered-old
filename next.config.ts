@@ -32,8 +32,12 @@ export default {
                 ]
             },
             {
-                source: "/sw.js",
+                source: "/workers/notifications.js",
                 headers: [
+                    {
+                        key: "Service-Worker-Allowed",
+                        value: "/"
+                    },
                     {
                         key: "Content-Type",
                         value: "application/javascript; charset=utf-8"

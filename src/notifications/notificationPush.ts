@@ -35,7 +35,7 @@ export async function registerAndSubscribe(
             .then((registration: ServiceWorkerRegistration) => {
                 return registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: process.env.NEXT_PUBLIC_VAPID
+                    applicationServerKey: process.env.NEXT_PUBLIC_PWA_NOTIFICATIONS
                 })
             })
             .then((subscription: PushSubscription) => {

@@ -18,3 +18,9 @@ export type StrictPartial<Target, Self> = {
 export type AllowReturningFunctionsForPropertyValues<T> = {
     [K in keyof T]: T[K] | (() => T[K] | Promise<T[K]>)
 }
+
+export type Replace<
+    String extends string,
+    From extends string,
+    To extends string
+> = String extends `${infer Prefix}${From}${infer Suffix}` ? `${Prefix}${To}${Replace<Suffix, From, To>}` : String

@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: config.brand.info.name,
         short_name: config.brand.info.name,
         description: config.brand.info.description,
-        start_url: "/push-notifications",
+        start_url: "/pwa",
         display: "standalone",
         background_color: "#101010",
         theme_color: "#FF0000",

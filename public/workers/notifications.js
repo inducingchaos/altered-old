@@ -2,59 +2,32 @@
  *
  */
 
-self.addEventListener("install", console.info("Service Worker installing."))
+self.addEventListener("install", console.log("Service Worker installing."))
+self.addEventListener("activate", console.log("Service Worker activating."))
 
-self.addEventListener("activate", console.info("Service Worker activating."))
-
-const sendDeliveryReportAction = () => {
-    console.log("Web push delivered.")
-}
-
-self.addEventListener("push", function (event) {
-    if (!event.data) {
-        return
-    }
-
-    const payload = event.data.json()
-    const { body, icon, image, badge, url, title } = payload
-    const notificationTitle = title ?? "Unknown title"
-    const notificationOptions = {
-        body,
-        icon,
-        image,
-        data: {
-            url
-        },
-        badge
-    }
+self.addEventListener("push", event => {
+    if (!event.data) return
+    const { title, body, icon, url } = event.data.json()
 
     event.waitUntil(
-        self.registration.showNotification(notificationTitle, notificationOptions).then(() => {
-            sendDeliveryReportAction()
+        self.registration.showNotification(title, {
+            body,
+            icon,
+            data: { url }
         })
     )
 })
 
-self.addEventListener("notificationclick", function (event) {
-    console.log("Notification clicked.")
+self.addEventListener("notificationclick", event => {
     event.notification.close()
+
+    if (!event.notification.data.url) return
 
     event.waitUntil(
         clients.matchAll({ type: "window", includeUncontrolled: true }).then(clientList => {
-            const url = event.notification.data.url
+            for (const client of clientList) if (client.url === url && "focus" in client) return client.focus()
 
-            if (!url) return
-
-            for (const client of clientList) {
-                if (client.url === url && "focus" in client) {
-                    return client.focus()
-                }
-            }
-
-            if (clients.openWindow) {
-                console.log("Opening window.")
-                return clients.openWindow(url)
-            }
+            return clients.openWindow(event.notification.data.url)
         })
     )
 })

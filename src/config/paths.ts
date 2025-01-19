@@ -9,7 +9,11 @@ export const paths = {
         root: "/"
     },
     assets: {
-        favicon: "/brand/favicon.png"
+        favicon: "/brand/favicon.png",
+        appIcon: "/brand/app-icon-512x512.png",
+        workers: {
+            notifications: "/workers/notifications.js"
+        }
     },
     api: {
         base: "/api",

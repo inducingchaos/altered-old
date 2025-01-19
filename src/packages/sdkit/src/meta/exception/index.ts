@@ -2,8 +2,8 @@
  *
  */
 
-import { networkStatuses } from "@sdkit/constants/api"
-import { NextResponse } from "next/server"
+import { NETWORK_ERROR_STATUSES } from "@sdkit/constants/api"
+import type { NetworkErrorStatusCode } from "@sdkit/types/api"
 import type { ExceptionID, NetworkExceptionID } from "./id"
 
 export type ExceptionDomain = keyof ExceptionID
@@ -125,35 +125,9 @@ export class Exception<
         )
     }
 
-    /**
-     * Converts a network exception to a Next.js response.
-     */
-    static toNetworkResponse<Metadata extends object>({
-        using: exception
-    }: {
-        using: Exception<"network", NetworkExceptionID, Metadata>
-    }): NextResponse {
-        const status: number = parseInt(
-            (Object.keys(networkStatuses) as Array<keyof typeof networkStatuses>).find(
-                code => networkStatuses[code] === exception.id
-            ) as string
-        )
-
-        return NextResponse.json(
-            {
-                error: `${status}_${exception.id.toUpperCase().replace("-", "_")}`,
-                message: `${exception.info?.external?.label ?? exception.info?.internal.label}: ${
-                    exception.info?.external?.message ?? exception.info?.internal.message
-                }`
-            },
-            {
-                status,
-                statusText: exception.id.replace(/-/g, " ").replace(/\b\w/g, char => char.toUpperCase())
-            }
-        )
-    }
-
-    static idFromNetworkStatusCode({ using: statusCode }: { using: number }): NetworkExceptionID {
-        return networkStatuses[statusCode.toString() as keyof typeof networkStatuses] as NetworkExceptionID
+    static idFromNetworkStatusCode({ using: statusCode }: { using: NetworkErrorStatusCode }): NetworkExceptionID {
+        return NETWORK_ERROR_STATUSES[statusCode].toLowerCase().replace(/_/g, "-") as NetworkExceptionID
     }
 }
+
+export * from "./id"

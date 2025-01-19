@@ -4,6 +4,7 @@
 
 import { type NextRequest, NextResponse } from "next/server"
 import { Exception } from "~/packages/sdkit/src/meta"
+import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { createThought } from "~/server/data/access/iiinput/thoughts"
 import type { CreatableThought } from "~/server/data/schemas/iiinput"
@@ -54,8 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json(thought)
     } catch (error) {
         if (error instanceof Exception) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            return Exception.toNetworkResponse({ using: error })
+            return createNetworkResponse({ using: error })
         }
 
         return NextResponse.json({ error: "Failed to create thought." }, { status: 500 })

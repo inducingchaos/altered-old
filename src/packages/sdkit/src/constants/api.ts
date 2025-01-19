@@ -2,26 +2,33 @@
  *
  */
 
-export const networkStatuses = {
-    "200": "ok",
-    "201": "created",
-    "202": "accepted",
-    "204": "no-content",
+export const NETWORK_SUCCESS_STATUSES = {
+    "200": "OK",
+    "201": "CREATED",
+    "202": "ACCEPTED",
+    "204": "NO_CONTENT"
+} as const
 
-    "400": "bad-request",
-    "401": "unauthorized",
-    "403": "forbidden",
-    "404": "not-found",
-    "405": "method-not-allowed",
-    "408": "request-timeout",
-    "409": "conflict",
-    "410": "gone",
-    "413": "payload-too-large",
-    "415": "unsupported-media-type",
-    "429": "too-many-requests",
+export const NETWORK_ERROR_STATUSES = {
+    "400": "BAD_REQUEST",
+    "401": "UNAUTHORIZED",
+    "403": "FORBIDDEN",
+    "404": "NOT_FOUND",
+    "405": "METHOD_NOT_ALLOWED",
+    "408": "REQUEST_TIMEOUT",
+    "409": "CONFLICT",
+    "410": "GONE",
+    "413": "PAYLOAD_TOO_LARGE",
+    "415": "UNSUPPORTED_MEDIA_TYPE",
+    "429": "TOO_MANY_REQUESTS",
 
-    "500": "internal-server-error",
-    "502": "bad-gateway",
-    "503": "service-unavailable",
-    "504": "gateway-timeout"
+    "500": "INTERNAL_SERVER_ERROR",
+    "502": "BAD_GATEWAY",
+    "503": "SERVICE_UNAVAILABLE",
+    "504": "GATEWAY_TIMEOUT"
+} as const
+
+export const NETWORK_STATUSES = {
+    ...NETWORK_SUCCESS_STATUSES,
+    ...NETWORK_ERROR_STATUSES
 } as const

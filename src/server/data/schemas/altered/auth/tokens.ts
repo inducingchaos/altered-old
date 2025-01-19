@@ -4,11 +4,11 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { index, int, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { int, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core"
 import { users } from "."
 import { createAlteredMysqlTable } from "../helpers"
 
-export const tokenTypes = ["password-reset", "email-verification", "magic-link", "session"] as const
+export const tokenTypes = ["password-reset", "email-verification", "magic-link", "session", "push-notification"] as const
 
 export const tokens = createAlteredMysqlTable(
     "tokens",
@@ -17,11 +17,11 @@ export const tokens = createAlteredMysqlTable(
         userId: int("user_id").notNull(),
 
         type: varchar("type", { length: 255, enum: tokenTypes }).notNull(),
-        value: varchar("value", { length: 255 }).notNull(),
+        value: varchar("value", { length: 768 }).notNull(),
 
         expiresAt: timestamp("expires_at").notNull()
     },
-    token => [index("type_idx").on(token.type)]
+    token => [uniqueIndex("userId_type_value_idx").on(token.userId, token.type, token.value)]
 )
 
 export const tokensRelations = relations(tokens, ({ one }) => ({

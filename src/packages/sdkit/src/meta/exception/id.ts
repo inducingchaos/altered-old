@@ -3,11 +3,11 @@
  * - Make sure to mark all exception IDs with `as const`, otherwise the type inference will not work.
  */
 
-import type { networkStatuses } from "@sdkit/constants/api"
-import type { NetworkStatusCode } from "@sdkit/types/api"
-import type { ArrayToUnion } from "@sdkit/utils/types"
+import type { NETWORK_ERROR_STATUSES } from "@sdkit/constants/api"
+import type { NetworkErrorStatusCode } from "@sdkit/types/api"
+import type { ArrayToUnion, Replace } from "@sdkit/utils/types"
 
-export const logicExceptionIds = ["incorrect-usage", "unknown"] as const
+export const logicExceptionIds = ["incorrect-usage", "unhandled-edge-case", "unknown"] as const
 export const configExceptionIds = ["missing-environment-variable", "missing-value"] as const
 export const authExceptionIds = [
     "invalid-credentials",
@@ -27,8 +27,8 @@ export const commsExceptionIds = ["send-failed"] as const
 export const frameworkExceptionIds = ["hook-outside-provider"] as const
 
 export type NetworkExceptionID = {
-    [K in NetworkStatusCode]: K extends `4${string}` | `5${string}` ? (typeof networkStatuses)[K] : never
-}[NetworkStatusCode]
+    [Key in NetworkErrorStatusCode]: Lowercase<Replace<(typeof NETWORK_ERROR_STATUSES)[Key], "_", "-">>
+}[NetworkErrorStatusCode]
 export type LogicExceptionID = ArrayToUnion<typeof logicExceptionIds>
 export type ConfigExceptionID = ArrayToUnion<typeof configExceptionIds>
 export type AuthExceptionID = ArrayToUnion<typeof authExceptionIds>
