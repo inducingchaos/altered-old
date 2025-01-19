@@ -2,6 +2,8 @@
  *
  */
 
+"use server"
+
 import { sendNotification, type SendResult } from "web-push"
 import config from "~/config"
 import { getPushNotificationTokens } from "./get-push-notification-tokens"
@@ -14,8 +16,6 @@ export async function pushNotification({
     with: { title?: string; message?: string }
     to?: { userId?: number }
 }): Promise<SendResult[]> {
-    "use server"
-
     const userId = recipient?.userId
     const tokens = await getPushNotificationTokens({ for: { userId } })
 

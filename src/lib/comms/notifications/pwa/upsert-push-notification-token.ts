@@ -3,6 +3,8 @@
  * - [P2] Refactor to use data access layer.
  */
 
+"use server"
+
 import type { PushSubscriptionConfig } from "@sdkit/types/comms/notifications/pwa"
 import { serializeSubscriptionCredentials } from "@sdkit/utils/comms/notifications/pwa"
 import config from "~/config"
@@ -16,8 +18,6 @@ export async function upsertPushNotificationToken({
     for: { userId: number }
     with: PushSubscriptionConfig
 }): Promise<Token> {
-    "use server"
-
     const value = serializeSubscriptionCredentials({ using: subscription })
     const expiresAt = subscription.expirationTime
         ? new Date(subscription.expirationTime)
