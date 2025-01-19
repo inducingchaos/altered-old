@@ -10,10 +10,10 @@ import { getPushNotificationTokens } from "./get-push-notification-tokens"
 import { deserializeSubscriptionCredentials } from "~/packages/sdkit/src/utils/comms/notifications/pwa/deserialize-subscription-credentials"
 
 export async function pushNotification({
-    with: { title, message },
+    with: { title, message, url },
     to: recipient
 }: {
-    with: { title?: string; message?: string }
+    with: { title?: string; message?: string; url?: string }
     to?: { userId?: number }
 }): Promise<SendResult[]> {
     const userId = recipient?.userId
@@ -32,7 +32,8 @@ export async function pushNotification({
                     JSON.stringify({
                         title,
                         body: message,
-                        icon: config.paths.assets.appIcon
+                        icon: config.paths.assets.appIcon,
+                        url
                     }),
                     {
                         vapidDetails: {

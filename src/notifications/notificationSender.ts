@@ -28,3 +28,5 @@ export const sendNotification = async (subscription: PushSubscription, title: st
         throw error
     }
 }
+
+// already consumed, can delete

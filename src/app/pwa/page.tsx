@@ -2,8 +2,6 @@
  *
  */
 
-"use client"
-
 import type { JSX } from "react"
 import { InstallPrompt, PushNotificationManager } from "./components"
 

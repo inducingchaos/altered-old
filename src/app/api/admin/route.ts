@@ -8,26 +8,41 @@ import { pushNotification } from "~/lib/comms/notifications/pwa"
 
 export const adminCommandIds = ["push-notification"] as const
 
+export function isAuthedSimple(request: NextRequest): boolean {
+    const authHeader = request.headers.get("Authorization")
+    return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
+    if (!isAuthedSimple(request)) {
+        return createNetworkResponse({
+            using: {
+                status: "UNAUTHORIZED",
+                message: "Failed To Run Command: Invalid authorization header."
+            }
+        })
+    }
+
     const { command, data } = (await request.json()) as { command: string; data: unknown }
 
     switch (command) {
         case "push-notification":
-            const { title, message, userId } = data as { title: string; message: string; userId: number }
+            const { title, message, userId, url } = data as { title?: string; message?: string; userId?: number; url?: string }
 
-            if (!title || !message) {
-                return createNetworkResponse({
-                    using: {
-                        status: "error",
-                        message: "Missing title or message"
-                    }
-                })
-            }
+            // if (!title || !message) {
+            //     return createNetworkResponse({
+            //         using: {
+            //             status: "error",
+            //             message: "Missing title or message"
+            //         }
+            //     })
+            // }
 
             const sendResults = await pushNotification({
                 with: {
                     title,
-                    message
+                    message,
+                    url
                 },
                 to: { userId }
             })

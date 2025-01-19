@@ -21,13 +21,14 @@ self.addEventListener("push", event => {
 self.addEventListener("notificationclick", event => {
     event.notification.close()
 
-    if (!event.notification.data.url) return
+    const url = event.notification.data.url
+    if (!url) return
 
     event.waitUntil(
         clients.matchAll({ type: "window", includeUncontrolled: true }).then(clientList => {
             for (const client of clientList) if (client.url === url && "focus" in client) return client.focus()
 
-            return clients.openWindow(event.notification.data.url)
+            return clients.openWindow(url)
         })
     )
 })
