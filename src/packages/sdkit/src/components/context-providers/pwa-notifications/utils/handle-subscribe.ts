@@ -5,7 +5,7 @@
 import { Exception } from "@sdkit/meta/exception"
 import { getSubscriptionConfig } from "@sdkit/utils/comms/notifications/pwa"
 import { upsertPushNotificationToken } from "~/lib/comms/notifications/pwa"
-import { urlBase64ToUint8Array } from "~/app/pwa/utils"
+import { urlBase64ToUint8Array } from "@sdkit/utils/data/conversions"
 import type { PWANotificationContextStateSetters } from "../types"
 import { isPermissionGranted } from "./is-permission-granted"
 
@@ -24,7 +24,7 @@ export async function pwaNotificationsContextHandleSubscribe({
             (await registration.pushManager.getSubscription()) ??
             (await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_PWA_NOTIFICATIONS!)
+                applicationServerKey: urlBase64ToUint8Array({ fromString: process.env.NEXT_PUBLIC_PWA_NOTIFICATIONS! })
             }))
 
         const subscriptionConfig = getSubscriptionConfig({ for: subscription })
