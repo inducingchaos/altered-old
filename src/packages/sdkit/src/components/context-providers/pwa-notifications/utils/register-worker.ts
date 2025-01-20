@@ -7,9 +7,11 @@ import config from "~/config"
 import type { PWANotificationContextStateSetters } from "../types"
 
 export async function pwaNotificationsContextRegisterWorker({
-    setters: { setSubscription, setError }
+    setSubscription,
+    setError
 }: {
-    setters: PWANotificationContextStateSetters
+    setSubscription: PWANotificationContextStateSetters["setSubscription"]
+    setError: PWANotificationContextStateSetters["setError"]
 }): Promise<void> {
     try {
         const registration = await navigator.serviceWorker.register(config.paths.assets.workers.notifications, {

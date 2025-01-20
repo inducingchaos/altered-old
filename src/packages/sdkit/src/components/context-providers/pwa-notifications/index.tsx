@@ -36,7 +36,8 @@ export function PWANotificationContextProvider({ children }: PWANotificationCont
 
         if (_isSupported && _isGrantedPermission)
             void pwaNotificationsContextRegisterWorker({
-                setters: { setSubscription, setError }
+                setSubscription,
+                setError
             })
     }, [])
 
@@ -47,19 +48,20 @@ export function PWANotificationContextProvider({ children }: PWANotificationCont
                 isGrantedPermission,
                 isSubscribed: !!subscription,
                 isInstalled,
-                // rename to operating system
                 os,
                 subscription,
                 error,
-                // Make props non-options
                 handleSubscribe: () =>
                     pwaNotificationsContextHandleSubscribe({
-                        setters: { setSubscription, setError, setIsGrantedPermission }
+                        setSubscription,
+                        setError,
+                        setIsGrantedPermission
                     }),
                 handleUnsubscribe: () =>
                     pwaNotificationsContextHandleUnsubscribe({
                         subscription,
-                        setters: { setSubscription, setError }
+                        setSubscription,
+                        setError
                     })
             }}
         >

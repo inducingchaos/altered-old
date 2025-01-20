@@ -10,9 +10,13 @@ import type { PWANotificationContextStateSetters } from "../types"
 import { isPermissionGranted } from "./is-permission-granted"
 
 export async function pwaNotificationsContextHandleSubscribe({
-    setters: { setSubscription, setError, setIsGrantedPermission }
+    setSubscription,
+    setError,
+    setIsGrantedPermission
 }: {
-    setters: PWANotificationContextStateSetters
+    setSubscription: PWANotificationContextStateSetters["setSubscription"]
+    setError: PWANotificationContextStateSetters["setError"]
+    setIsGrantedPermission: PWANotificationContextStateSetters["setIsGrantedPermission"]
 }): Promise<void> {
     try {
         const registration = await navigator.serviceWorker.ready

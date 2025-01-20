@@ -9,10 +9,12 @@ import type { PWANotificationContextStateSetters } from "../types"
 
 export async function pwaNotificationsContextHandleUnsubscribe({
     subscription,
-    setters: { setSubscription, setError }
+    setSubscription,
+    setError
 }: {
     subscription: PushSubscription | null | undefined
-    setters: PWANotificationContextStateSetters
+    setSubscription: PWANotificationContextStateSetters["setSubscription"]
+    setError: PWANotificationContextStateSetters["setError"]
 }): Promise<void> {
     try {
         if (subscription) {
