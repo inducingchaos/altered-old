@@ -15,11 +15,12 @@ export async function pwaNotificationsContextHandleUnsubscribe({
     setters: PWANotificationContextStateSetters
 }): Promise<void> {
     try {
-        if (!subscription) throw new Error("No subscription found")
+        if (subscription) {
+            const subscriptionConfig = getSubscriptionConfig({ for: subscription })
+            await deletePushNotificationToken({ for: { userId: 1 }, using: subscriptionConfig })
 
-        const subscriptionConfig = getSubscriptionConfig({ for: subscription })
-        await deletePushNotificationToken({ for: { userId: 1 }, using: subscriptionConfig })
-        await subscription.unsubscribe()
+            await subscription.unsubscribe()
+        }
 
         setSubscription?.(null)
         setError?.(null)
