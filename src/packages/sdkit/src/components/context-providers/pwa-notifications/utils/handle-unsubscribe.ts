@@ -1,0 +1,40 @@
+/**
+ *
+ */
+
+import { Exception } from "@sdkit/meta"
+import { getSubscriptionConfig } from "@sdkit/utils/comms/notifications/pwa"
+import { deletePushNotificationToken } from "~/lib/comms/notifications/pwa"
+import type { PWANotificationContextStateSetters } from "../types"
+
+export async function pwaNotificationsContextHandleUnsubscribe({
+    subscription,
+    setters: { setSubscription, setError }
+}: {
+    subscription: PushSubscription | null | undefined
+    setters: PWANotificationContextStateSetters
+}): Promise<void> {
+    try {
+        if (!subscription) throw new Error("No subscription found")
+
+        const subscriptionConfig = getSubscriptionConfig({ for: subscription })
+        await deletePushNotificationToken({ for: { userId: 1 }, using: subscriptionConfig })
+        await subscription.unsubscribe()
+
+        setSubscription?.(null)
+        setError?.(null)
+    } catch (err) {
+        setError?.(
+            new Exception({
+                in: "comms",
+                of: "send-failed",
+                with: {
+                    internal: {
+                        label: "Push Unsubscription Failed",
+                        message: err instanceof Error ? err.message : "Failed to unsubscribe from notifications"
+                    }
+                }
+            })
+        )
+    }
+}

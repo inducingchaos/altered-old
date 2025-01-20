@@ -2,77 +2,50 @@
  *
  */
 
-import { getSubscriptionConfig } from "@sdkit/utils/comms/notifications/pwa"
-import { useEffect, useState, type JSX } from "react"
-import config from "~/config"
-import { deletePushNotificationToken, upsertPushNotificationToken } from "~/lib/comms/notifications/pwa"
-import { urlBase64ToUint8Array } from "../utils"
+import { type JSX } from "react"
+import { usePWANotification } from "~/packages/sdkit/src/components/context-providers"
 
 export function PushNotificationManager(): JSX.Element {
-    const [isSupported, setIsSupported] = useState(false)
-    const [workerSubscription, setWorkerSubscription] = useState<PushSubscription | null>(null)
+    const { isSupported, isGrantedPermission, isSubscribed, error, handleSubscribe, handleUnsubscribe } = usePWANotification()
 
-    const registerServiceWorker = async (): Promise<void> => {
-        const registration = await navigator.serviceWorker.register(config.paths.assets.workers.notifications, {
-            scope: "/",
-            updateViaCache: "none"
-        })
+    if (error)
+        return (
+            <>
+                <p>{error.info?.external?.label}</p>
+                <p>{error.info?.external?.message}</p>
+            </>
+        )
 
-        const existingSubscription = await registration.pushManager.getSubscription()
-        setWorkerSubscription(existingSubscription)
-    }
+    if (!isSupported)
+        return (
+            <p className="text-center text-red-500">
+                Push notifications are not supported in this browser. Consider adding to the home screen (PWA) if on iOS.
+            </p>
+        )
 
-    const enablePushNotifications = async (): Promise<void> => {
-        const registration = await navigator.serviceWorker.ready
-        const workerSub = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_PWA_NOTIFICATIONS!)
-        })
+    if (isGrantedPermission === false)
+        return (
+            <p className="text-center text-red-600">
+                You have denied permission for push notifications. To enable, please update your browser settings.
+            </p>
+        )
 
-        setWorkerSubscription(workerSub)
-
-        const subscriptionConfig = getSubscriptionConfig({ for: workerSub })
-        await upsertPushNotificationToken({ for: { userId: 1 }, with: subscriptionConfig })
-    }
-
-    const disablePushNotifications = async (): Promise<void> => {
-        if (!workerSubscription) return
-
-        await workerSubscription?.unsubscribe()
-        setWorkerSubscription(null)
-
-        const subscriptionConfig = getSubscriptionConfig({ for: workerSubscription })
-        await deletePushNotificationToken({ for: { userId: 1 }, using: subscriptionConfig })
-    }
-
-    useEffect(() => {
-        if ("serviceWorker" in navigator && "PushManager" in window) {
-            setIsSupported(true)
-
-            void registerServiceWorker()
-        }
-    }, [])
-
-    if (!isSupported) return <p>{"Push notifications are not supported in this browser."}</p>
+    if (!isSubscribed)
+        return (
+            <>
+                <p>{"You are not subscribed to push notifications."}</p>
+                <button className="bg-main text-alternate" onClick={handleSubscribe}>
+                    {"Subscribe"}
+                </button>
+            </>
+        )
 
     return (
-        <div className="flex flex-col items-center justify-center">
-            <h3 className="text-24px font-bold">Push Notifications</h3>
-            {workerSubscription ? (
-                <>
-                    <p>{"You are subscribed to push notifications."}</p>
-                    <button className="bg-main text-alternate" onClick={disablePushNotifications}>
-                        {"Unsubscribe"}
-                    </button>
-                </>
-            ) : (
-                <>
-                    <p>{"You are not subscribed to push notifications."}</p>
-                    <button className="bg-main text-alternate" onClick={enablePushNotifications}>
-                        {"Subscribe"}
-                    </button>
-                </>
-            )}
-        </div>
+        <>
+            <p>{"You are subscribed to push notifications."}</p>
+            <button className="bg-main text-alternate" onClick={handleUnsubscribe}>
+                {"Unsubscribe"}
+            </button>
+        </>
     )
 }

@@ -2,6 +2,7 @@
  *
  */
 
+import { PWANotificationContextProvider } from "~/packages/sdkit/src/components/context-providers"
 import "@sdkit/defaults/styles/globals.css"
 import { createPageMetadata } from "@sdkit/framework/pages"
 import type { JSX, ReactNode } from "react"
@@ -18,8 +19,6 @@ import {
 
 import "~/styles/overrides.css"
 
-import { NotificationProvider } from "~/notifications/useNotification"
-
 export const metadata = createPageMetadata({ using: config })
 
 export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
@@ -30,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }): JSX.E
             className={`${pxGrotesk.variable} ${pxGroteskMono.variable} ${hoeflerText.variable} ${saans.variable} ${inter.variable} ${geist.variable} ${geistMono.variable} [.font-mono]:tracking-tighter tracking-normal`}
         >
             <body>
-                <NotificationProvider>{children}</NotificationProvider>
+                <PWANotificationContextProvider>{children}</PWANotificationContextProvider>
             </body>
         </html>
     )
