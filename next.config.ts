@@ -8,7 +8,8 @@ import type { Header } from "next/dist/lib/load-custom-routes"
 export default {
     experimental: {
         ppr: true,
-        dynamicIO: true
+        dynamicIO: true,
+        authInterrupts: true
     },
     typescript: { ignoreBuildErrors: true },
     eslint: { ignoreDuringBuilds: true },

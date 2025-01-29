@@ -3,18 +3,18 @@
  */
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
-import { nanoid } from "nanoid"
 import { relations } from "drizzle-orm"
-import { timestamp, varchar } from "drizzle-orm/mysql-core"
+import { varchar } from "drizzle-orm/mysql-core"
 import { accounts, profiles, tokens } from "."
+import { createdAt, id, updatedAt } from "../../helpers"
 import { createAlteredMysqlTable } from "../helpers"
 
 export const users = createAlteredMysqlTable("users", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+    id,
     name: varchar("name", { length: 255 }),
 
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+    createdAt,
+    updatedAt
 })
 
 export const usersRelations = relations(users, ({ many }) => ({
