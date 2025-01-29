@@ -3,16 +3,17 @@
  */
 
 import { relations } from "drizzle-orm"
-import { int, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, varchar } from "drizzle-orm/mysql-core"
+import { nanoid } from "nanoid"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
 import { createIiinputMysqlTable } from "./helpers"
 import { thoughts } from "./thoughts"
 
 export const attachments = createIiinputMysqlTable("attachments", {
-    id: int("id").autoincrement().primaryKey(),
-    userId: int("user_id").notNull(),
-    thoughtId: int("thought_id").notNull(),
+    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+    userId: varchar("user_id", { length: 255 }).notNull(),
+    thoughtId: varchar("thought_id", { length: 255 }).notNull(),
 
     url: varchar("url", { length: 2048 }).notNull(),
 

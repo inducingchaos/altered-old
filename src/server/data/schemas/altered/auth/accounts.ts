@@ -4,7 +4,8 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { int, timestamp, unique, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, unique, varchar } from "drizzle-orm/mysql-core"
+import { nanoid } from "nanoid"
 import { users } from "."
 import { createAlteredMysqlTable } from "../helpers"
 
@@ -13,8 +14,8 @@ export const accountTypes = ["email", "password", "google"] as const
 export const accounts = createAlteredMysqlTable(
     "accounts",
     {
-        id: int("id").autoincrement().primaryKey().notNull(),
-        userId: int("user_id").notNull(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+        userId: varchar("user_id", { length: 255 }).notNull(),
 
         type: varchar("type", { length: 255, enum: accountTypes }).notNull(),
         providerId: varchar("provider_id", { length: 255 }).notNull(),

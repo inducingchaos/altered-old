@@ -4,7 +4,8 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { int, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core"
+import { nanoid } from "nanoid"
 import { users } from "."
 import { createAlteredMysqlTable } from "../helpers"
 
@@ -13,8 +14,8 @@ export const tokenTypes = ["password-reset", "email-verification", "magic-link",
 export const tokens = createAlteredMysqlTable(
     "tokens",
     {
-        id: int("id").autoincrement().primaryKey(),
-        userId: int("user_id").notNull(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+        userId: varchar("user_id", { length: 255 }).notNull(),
 
         type: varchar("type", { length: 255, enum: tokenTypes }).notNull(),
         value: varchar("value", { length: 768 }).notNull(),

@@ -3,21 +3,22 @@
  */
 
 import { relations } from "drizzle-orm"
-import { index, int, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { index, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { nanoid } from "nanoid"
+import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
 import { attachments } from "./attachments"
 import { createIiinputMysqlTable } from "./helpers"
 import { thoughtsToTags } from "./joins"
-import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 
 export const thoughts = createIiinputMysqlTable(
     "thoughts",
     {
-        id: int("id").autoincrement().primaryKey(),
-        userId: int("user_id").notNull(),
+        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+        userId: varchar("user_id", { length: 255 }).notNull(),
 
         content: varchar("content", { length: 255 }).notNull(),
-        attachmentId: int("attachment_id"),
+        attachmentId: varchar("attachment_id", { length: 255 }),
 
         createdAt: timestamp("created_at").notNull().defaultNow(),
         updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()

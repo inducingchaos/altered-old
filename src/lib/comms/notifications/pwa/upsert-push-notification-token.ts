@@ -15,7 +15,7 @@ export async function upsertPushNotificationToken({
     for: { userId },
     with: subscription
 }: {
-    for: { userId: number }
+    for: { userId: string }
     with: PushSubscriptionConfig
 }): Promise<Token> {
     const value = serializeSubscriptionCredentials({ using: subscription })

@@ -14,7 +14,7 @@ export async function pushNotification({
     to: recipient
 }: {
     with: { title?: string; message?: string; url?: string }
-    to?: { userId?: number }
+    to?: { userId?: string }
 }): Promise<SendResult[]> {
     const userId = recipient?.userId
     const tokens = await getPushNotificationTokens({ for: { userId } })

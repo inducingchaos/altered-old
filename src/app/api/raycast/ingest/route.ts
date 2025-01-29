@@ -70,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         const allThoughts = await getThoughts({
             where: {
-                userId: 1
+                userId: process.env.USER_ID
             },
             from: db
         })

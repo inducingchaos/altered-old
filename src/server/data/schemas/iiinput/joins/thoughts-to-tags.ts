@@ -3,7 +3,7 @@
  */
 
 import { relations } from "drizzle-orm"
-import { int, primaryKey } from "drizzle-orm/mysql-core"
+import { primaryKey, varchar } from "drizzle-orm/mysql-core"
 import { createIiinputMysqlTable } from "../helpers"
 import { tags } from "../tags"
 import { thoughts } from "../thoughts"
@@ -11,8 +11,8 @@ import { thoughts } from "../thoughts"
 export const thoughtsToTags = createIiinputMysqlTable(
     "thoughts_to_tags",
     {
-        thoughtId: int("thought_id").notNull(),
-        tagId: int("tag_id").notNull()
+        thoughtId: varchar("thought_id", { length: 255 }).notNull(),
+        tagId: varchar("tag_id", { length: 255 }).notNull()
     },
     thoughtToTag => [primaryKey({ columns: [thoughtToTag.thoughtId, thoughtToTag.tagId] })]
 )

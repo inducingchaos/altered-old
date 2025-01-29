@@ -28,7 +28,7 @@ export async function pwaNotificationsContextHandleSubscribe({
             }))
 
         const subscriptionConfig = getSubscriptionConfig({ for: subscription })
-        await upsertPushNotificationToken({ for: { userId: 1 }, with: subscriptionConfig })
+        await upsertPushNotificationToken({ for: { userId: process.env.USER_ID! }, with: subscriptionConfig })
 
         setIsGrantedPermission?.(isPermissionGranted())
         setSubscription?.(subscription)

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     switch (command) {
         case "push-notification":
-            const { title, message, userId, url } = data as { title?: string; message?: string; userId?: number; url?: string }
+            const { title, message, userId, url } = data as { title?: string; message?: string; userId?: string; url?: string }
 
             // if (!title || !message) {
             //     return createNetworkResponse({

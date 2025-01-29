@@ -15,7 +15,7 @@ export async function deletePushNotificationToken({
     for: { userId },
     using: subscription
 }: {
-    for: { userId: number }
+    for: { userId: string }
     using: PushSubscriptionConfig
 }): Promise<void> {
     const value = serializeSubscriptionCredentials({ using: subscription })
