@@ -128,6 +128,18 @@ export class Exception<
     static idFromNetworkStatusCode({ using: statusCode }: { using: NetworkErrorStatusCode }): NetworkExceptionID {
         return NETWORK_ERROR_STATUSES[statusCode].toLowerCase().replace(/_/g, "-") as NetworkExceptionID
     }
+
+    static async catch<Data, SuccessResult = { success: true; data: Data }>(
+        promise: Promise<Data>
+    ): Promise<SuccessResult | { success: false; error: Exception }> {
+        return promise
+            .then(data => ({ success: true, data }) as SuccessResult)
+            .catch(error => {
+                if (error instanceof Exception) return { success: false, error }
+
+                throw error
+            })
+    }
 }
 
 export * from "./id"
