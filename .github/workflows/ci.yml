@@ -12,24 +12,24 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Initialize Bun
+            - name: Setup Bun
               uses: oven-sh/setup-bun@v1
               with:
                   bun-version: latest
 
-            - name: Cache Node Modules
+            - name: Get Node Modules Cache
               uses: actions/cache@v4
               with:
                   path: ./node_modules
                   key: ${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
-            - name: Cache ESLint
+            - name: Get ESLint Cache
               uses: actions/cache@v4
               with:
                   path: ./.cache/.eslintcache
                   key: ${{ runner.os }}-${{ hashFiles('bun.lockb', '.eslintrc.cjs') }}
 
-            - name: Install Packages
+            - name: Install Dependencies
               run: bun i --frozen-lockfile
 
             - name: Format
