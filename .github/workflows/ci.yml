@@ -35,11 +35,11 @@ jobs:
             - name: Format
               run: bun run format
 
-            - name: Lint Code
-              run: bun run lint
-
             - name: Check Types
               run: bun run typecheck
+
+            - name: Lint Code
+              run: bun run lint
 
             - name: Verify Commit
               run: bunx commitlint --from HEAD~1 --to HEAD --verbose
