@@ -6,9 +6,11 @@ import { createNetworkResponse } from "@sdkit/utils/network"
 import type { NextRequest, NextResponse } from "next/server"
 import { pushNotification } from "~/lib/comms/notifications/pwa"
 
-export const adminCommandIds = ["push-notification"] as const
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const adminCommandIds = ["push-notification"] as const
+type AdminCommandId = (typeof adminCommandIds)[number]
 
-export function isAuthedSimple(request: NextRequest): boolean {
+function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
     return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
 }
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         })
     }
 
-    const { command, data } = (await request.json()) as { command: string; data: unknown }
+    const { command, data } = (await request.json()) as { command: AdminCommandId; data: unknown }
 
     switch (command) {
         case "push-notification":
