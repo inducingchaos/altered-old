@@ -2,7 +2,7 @@
  *
  */
 
-import config from "@kaitype/config"
+import config from "~/config"
 import type { JSX } from "react"
 
 export default function Home(): JSX.Element {
