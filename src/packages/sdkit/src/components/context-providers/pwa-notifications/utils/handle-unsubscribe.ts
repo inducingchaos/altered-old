@@ -19,7 +19,7 @@ export async function pwaNotificationsContextHandleUnsubscribe({
     try {
         if (subscription) {
             const subscriptionConfig = getSubscriptionConfig({ for: subscription })
-            await deletePushNotificationToken({ for: { userId: process.env.USER_ID! }, using: subscriptionConfig })
+            await deletePushNotificationToken({ for: { userId: process.env.ME! }, using: subscriptionConfig })
 
             await subscription.unsubscribe()
         }
