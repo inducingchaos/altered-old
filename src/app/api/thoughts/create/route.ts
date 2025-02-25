@@ -12,6 +12,8 @@ import { thoughts as thoughtsSchema } from "~/server/data/schemas/iiinput/though
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
+    console.error("Recieved request with auth header:", authHeader, "Expected:", `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`)
+
     return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
 }
 
