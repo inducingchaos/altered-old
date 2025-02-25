@@ -4,7 +4,7 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, varchar } from "drizzle-orm/mysql-core"
 import { nanoid } from "nanoid"
 import { users } from "."
 import { createAlteredMysqlTable } from "../helpers"
@@ -21,8 +21,9 @@ export const tokens = createAlteredMysqlTable(
         value: varchar("value", { length: 768 }).notNull(),
 
         expiresAt: timestamp("expires_at").notNull()
-    },
-    token => [uniqueIndex("userId_type_value_idx").on(token.userId, token.type, token.value)]
+    }
+    // disabled cuz f SQL
+    // token => [uniqueIndex("userId_type_value_idx").on(token.userId, token.type, token.value)]
 )
 
 export const tokensRelations = relations(tokens, ({ one }) => ({

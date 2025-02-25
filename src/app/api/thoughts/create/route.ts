@@ -54,7 +54,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 }
             })
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const thoughts = payload.map(thought => ({
             content: thought.TEMP_content,
 
