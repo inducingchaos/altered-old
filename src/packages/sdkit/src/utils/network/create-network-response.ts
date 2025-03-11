@@ -12,7 +12,7 @@ import { NextResponse } from "next/server"
 import config from "~/config"
 
 export function createNetworkResponse<T extends object>(options?: {
-    using: {
+    using?: {
         id?: string
         status?: NetworkStatusName | NetworkStatusCode | "success" | "error"
         message?: string
@@ -31,6 +31,8 @@ export function createNetworkResponse<T extends object>(options?: {
         defaultStatus = Object.entries(NETWORK_ERROR_STATUSES).find(status =>
             status.includes(options.from!.exception!.id.toUpperCase().replace(/-/g, "_"))
         )
+
+        console.log("Default status: ", defaultStatus)
 
         const defaultInfo = {
             external: {
