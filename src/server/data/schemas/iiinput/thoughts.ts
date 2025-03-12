@@ -10,6 +10,7 @@ import { users } from "../altered"
 import { attachments } from "./attachments"
 import { createIiinputMysqlTable } from "./helpers"
 import { thoughtsToTags } from "./joins"
+import { temp } from "./temp"
 
 export const thoughts = createIiinputMysqlTable(
     "thoughts",
@@ -33,6 +34,8 @@ export const thoughtsRelations = relations(thoughts, ({ one, many }) => ({
     }),
 
     tags: many(thoughtsToTags),
+
+    tempValues: many(temp),
 
     attachment: one(attachments, {
         fields: [thoughts.attachmentId],
