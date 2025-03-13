@@ -65,16 +65,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Thought not found." }, { status: 404 })
         }
 
-        const thoughtWithAlias = {
+        // Create response object with all temp values at the top level
+        const response = {
             ...Object.fromEntries(Object.entries(thoughtResult).filter(([key]) => key !== "tempValues")),
-            alias: thoughtResult.tempValues.find(v => v.key === "alias")?.value
-        } as Thought & { alias?: string }
+            ...Object.fromEntries(thoughtResult.tempValues.map(tv => [tv.key, tv.value]))
+        } as Thought & Record<string, string>
 
-        if (!thoughtWithAlias.alias) {
-            thoughtWithAlias.alias = (await ensureThoughtAlias(thoughtWithAlias)).alias
+        // Ensure alias exists
+        if (!response.alias) {
+            const withAlias = await ensureThoughtAlias(response)
+            if (withAlias.alias) {
+                response.alias = withAlias.alias
+            }
         }
 
-        return NextResponse.json(thoughtWithAlias)
+        return NextResponse.json(response)
     } catch (error) {
         if (error instanceof Exception) {
             return createNetworkResponse({ from: { exception: error as unknown as Exception<"network", NetworkExceptionID> } })
