@@ -65,8 +65,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             t =>
                 ({
                     ...Object.fromEntries(Object.entries(t).filter(([key]) => key !== "tempValues")),
-                    alias: t.tempValues.find(v => v.key === "alias")?.value
-                }) as ThoughtWithAlias
+                    ...Object.fromEntries(t.tempValues.map(tv => [tv.key, tv.value]))
+                }) as ThoughtWithAlias & Record<string, string>
         )
 
         // Generate aliases for thoughts that need them
@@ -76,9 +76,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         // Then generate aliases for them
         const updatedThoughts = await ensureThoughtsAliases(thoughtsNeedingAliases)
 
-        const thoughtsWithGuaranteedAliases = thoughtsWithAliases.map(
-            original => updatedThoughts.find(updated => updated.id === original.id) ?? original
-        )
+        const thoughtsWithGuaranteedAliases = thoughtsWithAliases.map(original => {
+            if (!original.alias) {
+                const updated = updatedThoughts.find(updated => updated.id === original.id)
+                if (updated && updated.alias) {
+                    return { ...original, alias: updated.alias }
+                }
+            }
+            return original
+        })
 
         const sortedThoughts = thoughtsWithGuaranteedAliases
             .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
