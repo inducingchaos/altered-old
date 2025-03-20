@@ -68,8 +68,23 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // Create response object with all temp values at the top level
         const response = {
             ...Object.fromEntries(Object.entries(thoughtResult).filter(([key]) => key !== "tempValues")),
-            ...Object.fromEntries(thoughtResult.tempValues.map(tv => [tv.key, tv.value]))
-        } as Thought & Record<string, string>
+            ...Object.fromEntries(
+                thoughtResult.tempValues.map(tv => {
+                    // Try to parse JSON strings for arrays and objects
+                    const value = tv.value
+                    try {
+                        // Check if the value looks like JSON
+                        if (value && (value.startsWith("[") || value.startsWith("{"))) {
+                            const parsed = JSON.parse(value) as unknown
+                            return [tv.key, parsed]
+                        }
+                    } catch {
+                        // If parsing fails, return the original string
+                    }
+                    return [tv.key, value]
+                })
+            )
+        } as Thought & Record<string, unknown>
 
         // Ensure alias exists
         if (!response.alias) {
@@ -242,11 +257,33 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                     )
                 }
 
-                // Convert objects to JSON strings to avoid [object Object]
+                // Validate datasets array
+                if (actualKey === "datasets") {
+                    if (!Array.isArray(value)) {
+                        return NextResponse.json(
+                            {
+                                error: "Datasets must be an array of strings."
+                            },
+                            { status: 400 }
+                        )
+                    }
+                    if (!value.every(v => typeof v === "string")) {
+                        return NextResponse.json(
+                            {
+                                error: "All dataset IDs must be strings."
+                            },
+                            { status: 400 }
+                        )
+                    }
+                }
 
+                // Convert objects to JSON strings to avoid [object Object]
                 let stringValue: string
 
-                if (typeof value === "object" && value !== null) {
+                if (Array.isArray(value)) {
+                    // Special handling for arrays - we still need to stringify but mark it for proper parsing
+                    stringValue = JSON.stringify(value)
+                } else if (typeof value === "object" && value !== null) {
                     try {
                         stringValue = JSON.stringify(value)
                     } catch {
@@ -260,12 +297,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                 } else if (typeof value === "string") {
                     stringValue = value
                 } else {
-                    return NextResponse.json(
-                        {
-                            error: "Invalid temp value. Must be a string or JSON object."
-                        },
-                        { status: 400 }
-                    )
+                    // Convert to string safely (for numbers, booleans, etc.)
+                    stringValue = String(value as number | boolean)
                 }
 
                 tempUpdates[actualKey] = stringValue
@@ -304,6 +337,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             await setTempValue(thoughtId, key, value)
 
             // Update response with new temp values
+            try {
+                // Check if the value looks like JSON
+                if (value && typeof value === "string" && (value.startsWith("[") || value.startsWith("{"))) {
+                    response[key] = JSON.parse(value)
+                    continue
+                }
+            } catch {
+                // If parsing fails, use the original string
+            }
             response[key] = value
         }
 

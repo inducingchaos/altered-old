@@ -65,8 +65,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             t =>
                 ({
                     ...Object.fromEntries(Object.entries(t).filter(([key]) => key !== "tempValues")),
-                    ...Object.fromEntries(t.tempValues.map(tv => [tv.key, tv.value]))
-                }) as ThoughtWithAlias & Record<string, string>
+                    ...Object.fromEntries(
+                        t.tempValues.map(tv => {
+                            // Try to parse JSON strings for arrays and objects
+                            const value = tv.value
+                            try {
+                                // Check if the value looks like JSON
+                                if (value && (value.startsWith("[") || value.startsWith("{"))) {
+                                    const parsed = JSON.parse(value) as unknown
+                                    return [tv.key, parsed]
+                                }
+                            } catch {
+                                // If parsing fails, return the original string
+                            }
+                            return [tv.key, value]
+                        })
+                    )
+                }) as ThoughtWithAlias & Record<string, unknown>
         )
 
         // Generate aliases for thoughts that need them
