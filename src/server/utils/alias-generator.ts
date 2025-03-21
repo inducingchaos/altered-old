@@ -5,6 +5,7 @@ import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
+import { getSystemPrompt, PROMPT_IDS } from "~/server/utils/prompts"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
 
 /**
@@ -15,12 +16,8 @@ import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
  */
 export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<ThoughtWithAlias> {
     try {
-        // Generate a new alias
-        const systemPrompt = `
-You are a concise title generator. Your task is to create a short, descriptive title (2-4 words) that captures the essence of the text content provided. 
-The title should be clear, relevant, and properly formatted with standard capitalization.
-Respond with ONLY the title and nothing else.
-`
+        // Get the system prompt for alias generation
+        const systemPrompt = await getSystemPrompt(PROMPT_IDS.ALIAS_GENERATION)
 
         const result = await generateText({
             model: openai("gpt-4o-mini"),
