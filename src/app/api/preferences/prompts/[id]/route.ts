@@ -4,7 +4,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
-import { getSystemPrompt, updateSystemPrompt } from "~/server/utils/prompts"
+import { getPromptWithMeta, updateSystemPrompt } from "~/server/utils/prompts"
 import { z } from "zod"
 
 function isAuthedSimple(request: NextRequest): boolean {
@@ -21,9 +21,9 @@ const promptUpdateSchema = z.object({
 // type PromptUpdateInput = z.infer<typeof promptUpdateSchema>
 
 type Params = {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export async function GET(request: NextRequest, { params }: Params): Promise<NextResponse> {
@@ -37,15 +37,17 @@ export async function GET(request: NextRequest, { params }: Params): Promise<Nex
             })
         }
 
-        const { id } = params
+        const { id } = await params
         if (!id) {
             return NextResponse.json({ error: "Prompt ID is required" }, { status: 400 })
         }
 
-        const promptContent = await getSystemPrompt(id)
-        return NextResponse.json({ id, content: promptContent })
+        // Get the prompt with metadata (including allowed variables)
+        const promptWithMeta = await getPromptWithMeta(id)
+        return NextResponse.json(promptWithMeta)
     } catch (error) {
-        console.error(`Error fetching prompt ${params.id}:`, error)
+        const { id } = await params
+        console.error(`Error fetching prompt ${id}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({
@@ -57,7 +59,7 @@ export async function GET(request: NextRequest, { params }: Params): Promise<Nex
     }
 }
 
-export async function PUT(request: NextRequest, { params }: Params): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: Params): Promise<NextResponse> {
     try {
         if (!isAuthedSimple(request)) {
             return createNetworkResponse({
@@ -68,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: Params): Promise<Nex
             })
         }
 
-        const { id } = params
+        const { id } = await params
         if (!id) {
             return NextResponse.json({ error: "Prompt ID is required" }, { status: 400 })
         }
@@ -82,11 +84,20 @@ export async function PUT(request: NextRequest, { params }: Params): Promise<Nex
         }
 
         const { content, name } = validation.data
-        const updatedPrompt = await updateSystemPrompt(id, content, name)
 
-        return NextResponse.json(updatedPrompt)
+        try {
+            // Update the prompt - validation happens in updateSystemPrompt
+            const result = await updateSystemPrompt(id, content, name)
+            return NextResponse.json(result)
+        } catch (error) {
+            if (error instanceof Error && error.message.includes("Invalid prompt template")) {
+                return NextResponse.json({ error: error.message }, { status: 400 })
+            }
+            throw error
+        }
     } catch (error) {
-        console.error(`Error updating prompt ${params.id}:`, error)
+        const { id } = await params
+        console.error(`Error updating prompt ${id}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({

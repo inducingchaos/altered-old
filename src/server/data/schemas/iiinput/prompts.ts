@@ -36,12 +36,19 @@ export type WritablePrompt = PromptsDataTypes["Writable"]
 export type CreatablePrompt = PromptsDataTypes["Creatable"]
 export type UpdatablePrompt = PromptsDataTypes["Updatable"]
 
-// Default system prompts
-export const DEFAULT_PROMPTS = {
-    "alias-generation": {
-        name: "Alias Generation",
-        content: `You are a concise title generator. Your task is to create a short, descriptive title (2-4 words) that captures the essence of the text content provided. 
-The title should be clear, relevant, and properly formatted with standard capitalization.
-Respond with ONLY the title and nothing else.`
-    }
+// Variable resolvers type definition
+export type VariableResolver = () => string | string[] | Promise<string | string[]>
+
+// Prompt definition with variables and their resolvers
+export type PromptDefinition = {
+    name: string
+    content: string
+    variables: Record<string, VariableResolver>
+}
+
+export type PromptWithMeta = {
+    id: string
+    content: string
+    name: string
+    allowedVariables: string[]
 }

@@ -5,7 +5,7 @@ import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
-import { getSystemPrompt, PROMPT_IDS } from "~/server/utils/prompts"
+import { getSystemPrompt } from "~/server/utils/prompts"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
 
 /**
@@ -17,7 +17,7 @@ import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
 export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<ThoughtWithAlias> {
     try {
         // Get the system prompt for alias generation
-        const systemPrompt = await getSystemPrompt(PROMPT_IDS.ALIAS_GENERATION)
+        const systemPrompt = await getSystemPrompt("alias-generation")
 
         const result = await generateText({
             model: openai("gpt-4o-mini"),

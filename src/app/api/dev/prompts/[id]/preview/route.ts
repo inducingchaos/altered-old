@@ -1,17 +1,23 @@
 /**
- * API routes for system prompts
+ * Debug API route for previewing prompts with variables resolved
  */
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
-import { getAllSystemPromptsWithMeta } from "~/server/utils/prompts"
+import { previewPrompt } from "~/server/utils/prompts"
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
     return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+type Params = {
+    params: Promise<{
+        id: string
+    }>
+}
+
+export async function GET(request: NextRequest, { params }: Params): Promise<NextResponse> {
     try {
         if (!isAuthedSimple(request)) {
             return createNetworkResponse({
@@ -22,11 +28,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             })
         }
 
-        // Get all prompts with their metadata (including allowed variables)
-        const prompts = await getAllSystemPromptsWithMeta()
-        return NextResponse.json(prompts)
+        const { id } = await params
+        if (!id) {
+            return NextResponse.json({ error: "Prompt ID is required" }, { status: 400 })
+        }
+
+        // Get the preview of the prompt with variables resolved
+        const preview = await previewPrompt(id)
+        return NextResponse.json(preview)
     } catch (error) {
-        console.error("Error fetching prompts:", error)
+        const { id } = await params
+        console.error(`Error previewing prompt ${id}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({
@@ -34,6 +46,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             })
         }
 
-        return NextResponse.json({ error: "Failed to fetch prompts." }, { status: 500 })
+        return NextResponse.json({ error: "Failed to preview prompt." }, { status: 500 })
     }
 }
