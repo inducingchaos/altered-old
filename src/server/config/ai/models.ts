@@ -49,50 +49,69 @@ export const MODEL_PROVIDERS: Record<ModelID, AIProvider> = {
     [MODEL_IDS.GROK_2]: "xai"
 }
 
-// Model display names (for UI)
-export const MODEL_DISPLAY_NAMES: Record<ModelID, string> = {
-    [MODEL_IDS.GPT_4O_MINI]: "GPT-4o mini",
-    [MODEL_IDS.CLAUDE_3_7_SONNET]: "Claude 3.7 Sonnet",
-    [MODEL_IDS.GROK_2]: "Grok 2"
+// Model descriptions for display and selection
+export type ModelInfo = {
+    id: ModelID
+    provider: AIProvider
+    name: string
+    description: string
+    capabilities: string[]
 }
 
-// All allowed model IDs
+export const MODEL_INFO: Record<ModelID, ModelInfo> = {
+    [MODEL_IDS.GPT_4O_MINI]: {
+        id: MODEL_IDS.GPT_4O_MINI,
+        provider: "openai",
+        name: "GPT-4o Mini",
+        description: "Fast and efficient model with strong performance at a lower cost",
+        capabilities: ["text generation", "creative writing", "summarization"]
+    },
+    [MODEL_IDS.CLAUDE_3_7_SONNET]: {
+        id: MODEL_IDS.CLAUDE_3_7_SONNET,
+        provider: "anthropic",
+        name: "Claude 3.7 Sonnet",
+        description: "Balanced model with excellent reasoning and instruction following abilities",
+        capabilities: ["text generation", "reasoning", "instruction following"]
+    },
+    [MODEL_IDS.GROK_2]: {
+        id: MODEL_IDS.GROK_2,
+        provider: "xai",
+        name: "Grok 2",
+        description: "Latest model from xAI with up-to-date knowledge and conversational abilities",
+        capabilities: ["text generation", "real-time knowledge", "conversation"]
+    }
+}
+
+// All allowed model IDs (for validation)
 export const ALLOWED_MODEL_IDS = Object.values(MODEL_IDS)
 
 // --------------------------------------------------
-// Use Case Definitions
+// Feature/Use Case Mapping
 // --------------------------------------------------
 
-// Feature/use case types
-export enum AIFeature {
-    ALIAS_GENERATION = "alias-generation",
-    THOUGHT_GENERATION = "thought-generation",
-    SPELLING_CORRECTION = "spelling-correction"
-}
-
-// Feature display names (for UI)
-export const FEATURE_DISPLAY_NAMES: Record<AIFeature, string> = {
-    [AIFeature.ALIAS_GENERATION]: "Alias Generation",
-    [AIFeature.THOUGHT_GENERATION]: "Thought Generation",
-    [AIFeature.SPELLING_CORRECTION]: "Spelling Correction"
-}
+// Available AI features/use cases
+export type AIFeature = "thought-generation" | "alias-generation" | "spell-checking"
 
 // Feature descriptions (for UI)
 export const FEATURE_DESCRIPTIONS: Record<AIFeature, string> = {
-    [AIFeature.ALIAS_GENERATION]: "Generates concise aliases for thoughts",
-    [AIFeature.THOUGHT_GENERATION]: "Creates new thoughts based on prompts",
-    [AIFeature.SPELLING_CORRECTION]: "Corrects spelling and grammar issues"
+    "thought-generation": "Creates new thoughts based on prompts",
+    "alias-generation": "Generates concise aliases for thoughts",
+    "spell-checking": "Corrects spelling and grammar issues"
 }
 
-// Default model ID for each feature
+// Default model IDs for each feature
 export const DEFAULT_MODEL_IDS: Record<AIFeature, ModelID> = {
-    [AIFeature.ALIAS_GENERATION]: MODEL_IDS.CLAUDE_3_7_SONNET,
-    [AIFeature.THOUGHT_GENERATION]: MODEL_IDS.GPT_4O_MINI,
-    [AIFeature.SPELLING_CORRECTION]: MODEL_IDS.GPT_4O_MINI
+    "thought-generation": MODEL_IDS.GPT_4O_MINI,
+    "alias-generation": MODEL_IDS.GPT_4O_MINI,
+    "spell-checking": MODEL_IDS.GPT_4O_MINI
 }
+
+// --------------------------------------------------
+// Preference Storage
+// --------------------------------------------------
 
 // Storage key for model preferences in temp database
 export const MODEL_PREFERENCE_KEY_PREFIX = "model-preference"
 
-// Use a consistent thought ID for model preferences in temp database
-export const MODEL_PREFERENCES_THOUGHT_ID = "n-a"
+// Thought ID used for storing model preferences (system preferences)
+export const MODEL_PREFERENCES_THOUGHT_ID = "system-model-preferences"

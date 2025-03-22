@@ -8,7 +8,6 @@ import { Exception } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { resolvePrompt } from "~/server/utils/prompts"
 import { getModelForFeature } from "~/server/utils/model-selector"
-import { AIFeature } from "~/server/config/ai/models"
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const systemPrompt = await resolvePrompt("thought-generation")
 
         // Get the preferred model for thought generation
-        const model = await getModelForFeature(AIFeature.THOUGHT_GENERATION)
+        const model = await getModelForFeature("thought-generation")
 
         // Create a stream using streamText with explicit typing
         const result = streamText({

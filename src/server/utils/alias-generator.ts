@@ -7,7 +7,6 @@ import { temp } from "~/server/data/schemas/iiinput/temp"
 import { getSystemPrompt } from "~/server/utils/prompts"
 import { getModelForFeature } from "~/server/utils/model-selector"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
-import { AIFeature } from "../config/ai/models"
 
 /**
  * Generates and stores a concise alias for a thought
@@ -21,7 +20,7 @@ export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<Tho
         const systemPrompt = await getSystemPrompt("alias-generation")
 
         // Get the preferred model for alias generation
-        const model = await getModelForFeature(AIFeature.ALIAS_GENERATION)
+        const model = await getModelForFeature("alias-generation")
 
         // Generate the alias
         const result = await generateText({
