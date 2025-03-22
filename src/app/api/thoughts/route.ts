@@ -4,7 +4,7 @@
 
 // copied over from generate
 
-import { eq } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 import Fuse from "fuse.js"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
@@ -38,13 +38,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const userId = process.env.ME ?? ""
 
         // if no query, limit to 25
-        const limit = query ? undefined : 25
+        const limit = query ? undefined : 100
 
         let allThoughts = await db.query.thoughts.findMany({
             with: {
                 tempValues: true
             },
             where: eq(thoughts.userId, userId),
+            orderBy: desc(thoughts.updatedAt),
             limit
         })
 
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 includeScore: true
             })
             const searchResults = fuse.search(query)
-            allThoughts = searchResults.map(result => result.item)
+            allThoughts = searchResults.map(result => result.item).slice(0, 100)
         }
 
         // remap thoughts to have alias top level w/o tempValues
@@ -102,8 +103,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         })
 
         const sortedThoughts = thoughtsWithGuaranteedAliases
-            .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-            .slice(0, 25)
 
         return NextResponse.json(sortedThoughts)
     } catch (error) {
