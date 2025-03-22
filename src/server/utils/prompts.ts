@@ -226,7 +226,7 @@ async function processTemplate(template: string, promptId: string): Promise<stri
         const resolver = promptDef.variables[varName]
         if (resolver) {
             const value = await resolver()
-            resolvedValues[varName] = Array.isArray(value) ? value.join("\n") : value
+            resolvedValues[varName] = Array.isArray(value) ? value.join("\n\n") : value
         }
     }
 
