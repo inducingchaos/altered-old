@@ -11,7 +11,7 @@ function isAuthedSimple(request: NextRequest): boolean {
     return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
     try {
         // Check authentication
         if (!isAuthedSimple(request)) {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             })
         }
 
-        const { id } = params
+        const { id } = await params
 
         // Validate model ID
         if (!ALLOWED_MODEL_IDS.includes(id as ModelID)) {
@@ -35,7 +35,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
         return NextResponse.json({ model })
     } catch (error) {
-        console.error(`Error retrieving model with ID ${params.id}:`, error)
+        const { id } = await params
+
+        console.error(`Error retrieving model with ID ${id}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })

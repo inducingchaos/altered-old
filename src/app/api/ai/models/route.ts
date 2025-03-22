@@ -23,8 +23,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             })
         }
 
-        // Return all available models with their information
-        return NextResponse.json({ models: Object.values(MODEL_INFO) })
+        // Return all available models with their information as a direct array
+        return NextResponse.json(Object.values(MODEL_INFO))
     } catch (error) {
         console.error("Error retrieving models:", error)
 
