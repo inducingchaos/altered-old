@@ -31,9 +31,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         }
 
         const modelId = id as ModelID
-        const modelInfo = MODEL_INFO[modelId]
+        const model = MODEL_INFO[modelId]
 
-        return NextResponse.json({ model: modelInfo })
+        return NextResponse.json({ model })
     } catch (error) {
         console.error(`Error retrieving model with ID ${params.id}:`, error)
 

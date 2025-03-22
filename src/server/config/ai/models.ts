@@ -52,7 +52,10 @@ export const MODEL_PROVIDERS: Record<ModelID, AIProvider> = {
 // Model descriptions for display and selection
 export type ModelInfo = {
     id: ModelID
-    provider: AIProvider
+    provider: {
+        id: AIProvider
+        name: string
+    }
     name: string
     description: string
     capabilities: string[]
@@ -61,21 +64,30 @@ export type ModelInfo = {
 export const MODEL_INFO: Record<ModelID, ModelInfo> = {
     [MODEL_IDS.GPT_4O_MINI]: {
         id: MODEL_IDS.GPT_4O_MINI,
-        provider: "openai",
+        provider: {
+            id: "openai",
+            name: PROVIDER_DISPLAY_NAMES.openai
+        },
         name: "GPT-4o Mini",
         description: "Fast and efficient model with strong performance at a lower cost",
         capabilities: ["text generation", "creative writing", "summarization"]
     },
     [MODEL_IDS.CLAUDE_3_7_SONNET]: {
         id: MODEL_IDS.CLAUDE_3_7_SONNET,
-        provider: "anthropic",
+        provider: {
+            id: "anthropic",
+            name: PROVIDER_DISPLAY_NAMES.anthropic
+        },
         name: "Claude 3.7 Sonnet",
         description: "Balanced model with excellent reasoning and instruction following abilities",
         capabilities: ["text generation", "reasoning", "instruction following"]
     },
     [MODEL_IDS.GROK_2]: {
         id: MODEL_IDS.GROK_2,
-        provider: "xai",
+        provider: {
+            id: "xai",
+            name: PROVIDER_DISPLAY_NAMES.xai
+        },
         name: "Grok 2",
         description: "Latest model from xAI with up-to-date knowledge and conversational abilities",
         capabilities: ["text generation", "real-time knowledge", "conversation"]

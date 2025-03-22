@@ -37,11 +37,12 @@ export async function GET(request: NextRequest, { params }: { params: { name: st
 
         // Since we've validated with isValidFeature, name is now AIFeature type
         const defaultModelId = DEFAULT_MODEL_IDS[name]
+        const defaultModel = MODEL_INFO[defaultModelId]
 
         return NextResponse.json({
             feature: name,
             description: FEATURE_DESCRIPTIONS[name],
-            defaultModel: MODEL_INFO[defaultModelId]
+            defaultModel
         })
     } catch (error) {
         console.error(`Error retrieving feature ${params.name}:`, error)

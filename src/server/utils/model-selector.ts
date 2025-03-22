@@ -12,10 +12,9 @@ import {
     type AIFeature,
     DEFAULT_MODEL_IDS,
     MODEL_IDS,
+    MODEL_INFO,
     MODEL_PREFERENCE_KEY_PREFIX,
     MODEL_PREFERENCES_THOUGHT_ID,
-    MODEL_PROVIDERS,
-    type AIProvider,
     type AnthropicModelID,
     type ModelID,
     type OpenAIModelID,
@@ -55,9 +54,7 @@ export async function getModelIdForFeature(feature: AIFeature): Promise<ModelID>
 export async function getModelForFeature(feature: AIFeature): Promise<LanguageModelV1> {
     try {
         const modelId = await getModelIdForFeature(feature)
-        const provider = MODEL_PROVIDERS[modelId]
-
-        return getModelForProvider(provider, modelId)
+        return getModelForId(modelId)
     } catch (error) {
         console.error(`Error getting model for feature ${feature}:`, error)
 
@@ -67,10 +64,13 @@ export async function getModelForFeature(feature: AIFeature): Promise<LanguageMo
 }
 
 /**
- * Get a model instance for a specific provider and model ID
+ * Get a model instance for a specific model ID
  */
-export function getModelForProvider(provider: AIProvider, modelId: ModelID): LanguageModelV1 {
-    switch (provider) {
+export function getModelForId(modelId: ModelID): LanguageModelV1 {
+    const modelInfo = MODEL_INFO[modelId]
+    const providerId = modelInfo.provider.id
+
+    switch (providerId) {
         case "anthropic":
             return createAnthropicModel(modelId as AnthropicModelID)
         case "xai":

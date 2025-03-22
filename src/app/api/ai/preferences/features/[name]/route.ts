@@ -55,11 +55,12 @@ export async function GET(request: NextRequest, { params }: { params: { name: st
 
         // Get model ID (from preference or default)
         const modelId = (preference?.value as ModelID) ?? DEFAULT_MODEL_IDS[name]
+        const model = MODEL_INFO[modelId]
 
         // Return model info
         return NextResponse.json({
             feature: name,
-            model: MODEL_INFO[modelId],
+            model,
             isDefault: !preference
         })
     } catch (error) {
@@ -105,6 +106,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { name: 
 
             // Return default model info
             const defaultModelId = DEFAULT_MODEL_IDS[name]
+
             return NextResponse.json({
                 feature: name,
                 model: MODEL_INFO[defaultModelId],
