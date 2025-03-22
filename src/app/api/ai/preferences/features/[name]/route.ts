@@ -1,5 +1,5 @@
 /**
- * API route for managing model preferences for specific features
+ * API route for managing AI model preferences for specific features
  */
 import { and, eq } from "drizzle-orm"
 import { NextResponse, type NextRequest } from "next/server"
@@ -28,7 +28,7 @@ function isValidFeature(feature: string): feature is AIFeature {
 }
 
 // GET current model preference for a feature
-export async function GET(request: NextRequest, { params }: { params: { feature: string } }): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: { name: string } }): Promise<NextResponse> {
     try {
         // Check authentication
         if (!isAuthedSimple(request)) {
@@ -40,30 +40,30 @@ export async function GET(request: NextRequest, { params }: { params: { feature:
             })
         }
 
-        const { feature } = params
+        const { name } = params
 
-        // Validate feature
-        if (!isValidFeature(feature)) {
-            return NextResponse.json({ error: `Invalid feature: ${feature}` }, { status: 400 })
+        // Validate feature name
+        if (!isValidFeature(name)) {
+            return NextResponse.json({ error: `Invalid feature: ${name}` }, { status: 400 })
         }
 
         // Get current preference
-        const preferenceKey = `${MODEL_PREFERENCE_KEY_PREFIX}-${feature}`
+        const preferenceKey = `${MODEL_PREFERENCE_KEY_PREFIX}-${name}`
         const preference = await db.query.temp.findFirst({
             where: and(eq(temp.key, preferenceKey), eq(temp.thoughtId, MODEL_PREFERENCES_THOUGHT_ID))
         })
 
         // Get model ID (from preference or default)
-        const modelId = (preference?.value as ModelID) ?? DEFAULT_MODEL_IDS[feature]
+        const modelId = (preference?.value as ModelID) ?? DEFAULT_MODEL_IDS[name]
 
         // Return model info
         return NextResponse.json({
-            feature,
+            feature: name,
             model: MODEL_INFO[modelId],
             isDefault: !preference
         })
     } catch (error) {
-        console.error(`Error getting model preference for feature ${params.feature}:`, error)
+        console.error(`Error getting model preference for feature ${params.name}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest, { params }: { params: { feature:
     }
 }
 
-// SET or CLEAR model preference for a feature
-export async function POST(request: NextRequest, { params }: { params: { feature: string } }): Promise<NextResponse> {
+// UPDATE or CLEAR model preference for a feature
+export async function PATCH(request: NextRequest, { params }: { params: { name: string } }): Promise<NextResponse> {
     try {
         // Check authentication
         if (!isAuthedSimple(request)) {
@@ -86,30 +86,30 @@ export async function POST(request: NextRequest, { params }: { params: { feature
             })
         }
 
-        const { feature } = params
+        const { name } = params
 
-        // Validate feature
-        if (!isValidFeature(feature)) {
-            return NextResponse.json({ error: `Invalid feature: ${feature}` }, { status: 400 })
+        // Validate feature name
+        if (!isValidFeature(name)) {
+            return NextResponse.json({ error: `Invalid feature: ${name}` }, { status: 400 })
         }
 
         // Parse request body
         const body = (await request.json()) as { modelId: ModelID | null }
         const { modelId } = body
 
-        const preferenceKey = `${MODEL_PREFERENCE_KEY_PREFIX}-${feature}`
+        const preferenceKey = `${MODEL_PREFERENCE_KEY_PREFIX}-${name}`
 
         if (modelId === null) {
             // Clear preference if modelId is null
             await db.delete(temp).where(and(eq(temp.key, preferenceKey), eq(temp.thoughtId, MODEL_PREFERENCES_THOUGHT_ID)))
 
             // Return default model info
-            const defaultModelId = DEFAULT_MODEL_IDS[feature]
+            const defaultModelId = DEFAULT_MODEL_IDS[name]
             return NextResponse.json({
-                feature,
+                feature: name,
                 model: MODEL_INFO[defaultModelId],
                 isDefault: true,
-                message: `Preference cleared, using default model for ${feature}`
+                message: `Preference cleared, using default model for ${name}`
             })
         } else {
             // Validate modelId
@@ -128,14 +128,14 @@ export async function POST(request: NextRequest, { params }: { params: { feature
 
             // Return updated model info
             return NextResponse.json({
-                feature,
+                feature: name,
                 model: MODEL_INFO[modelId],
                 isDefault: false,
-                message: `Preference updated for ${feature}`
+                message: `Preference updated for ${name}`
             })
         }
     } catch (error) {
-        console.error(`Error setting model preference for feature ${params.feature}:`, error)
+        console.error(`Error setting model preference for feature ${params.name}:`, error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })
