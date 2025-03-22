@@ -8,8 +8,7 @@ import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
 import {
-    DEFAULT_MODEL_IDS,
-    FEATURE_DESCRIPTIONS,
+    FEATURES,
     MODEL_PREFERENCE_KEY_PREFIX,
     MODEL_PREFERENCES_THOUGHT_ID,
     type AIFeature,
@@ -59,14 +58,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const preferencesMap = await getAllModelPreferences()
 
         // Build response with feature information
-        const featuresInfo = Object.entries(DEFAULT_MODEL_IDS).map(([feature, defaultModelId]) => {
-            const featureKey = feature as AIFeature
-            const preferredModelId = preferencesMap.get(featureKey) ?? defaultModelId
-            const isDefault = !preferencesMap.has(featureKey)
+        const featuresInfo = Object.values(FEATURES).map(feature => {
+            const preferredModelId = preferencesMap.get(feature.id) ?? feature.defaultModelId
+            const isDefault = !preferencesMap.has(feature.id)
 
             return {
-                id: featureKey,
-                description: FEATURE_DESCRIPTIONS[featureKey],
+                id: feature.id,
+                name: feature.name,
+                description: feature.description,
                 model: {
                     id: preferredModelId,
                     isDefault

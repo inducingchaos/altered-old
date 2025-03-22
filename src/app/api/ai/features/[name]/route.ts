@@ -8,8 +8,7 @@ import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
 import {
-    DEFAULT_MODEL_IDS,
-    FEATURE_DESCRIPTIONS,
+    FEATURES,
     MODEL_PREFERENCE_KEY_PREFIX,
     MODEL_PREFERENCES_THOUGHT_ID,
     ALLOWED_MODEL_IDS,
@@ -24,7 +23,7 @@ function isAuthedSimple(request: NextRequest): boolean {
 
 // Helper to validate if a string is a valid AIFeature
 function isValidFeature(feature: string): feature is AIFeature {
-    return feature in DEFAULT_MODEL_IDS
+    return feature in FEATURES
 }
 
 // Get current model preference for a feature
@@ -36,7 +35,7 @@ async function getModelPreference(feature: AIFeature): Promise<{ id: ModelID; is
     })
 
     // Get model ID (from preference or default)
-    const modelId = (preference?.value as ModelID) ?? DEFAULT_MODEL_IDS[feature]
+    const modelId = (preference?.value as ModelID) ?? FEATURES[feature].defaultModelId
     const isDefault = !preference
 
     return { id: modelId, isDefault }
@@ -64,11 +63,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Get model preference
         const model = await getModelPreference(name)
+        const featureInfo = FEATURES[name]
 
         // Return in the same format as the features list endpoint
         return NextResponse.json({
-            id: name,
-            description: FEATURE_DESCRIPTIONS[name],
+            id: featureInfo.id,
+            name: featureInfo.name,
+            description: featureInfo.description,
             model
         })
     } catch (error) {
@@ -106,22 +107,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         // Parse request body
         const body = (await request.json()) as { modelId: ModelID | null }
         const { modelId } = body
-
+        const featureInfo = FEATURES[name]
         const preferenceKey = `${MODEL_PREFERENCE_KEY_PREFIX}-${name}`
 
         if (modelId === null) {
             // Clear preference if modelId is null
             await db.delete(temp).where(and(eq(temp.key, preferenceKey), eq(temp.thoughtId, MODEL_PREFERENCES_THOUGHT_ID)))
 
-            // Get default model
-            const defaultModelId = DEFAULT_MODEL_IDS[name]
-
             // Return updated feature info
             return NextResponse.json({
-                id: name,
-                description: FEATURE_DESCRIPTIONS[name],
+                id: featureInfo.id,
+                name: featureInfo.name,
+                description: featureInfo.description,
                 model: {
-                    id: defaultModelId,
+                    id: featureInfo.defaultModelId,
                     isDefault: true
                 }
             })
@@ -142,8 +141,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
             // Return updated feature info
             return NextResponse.json({
-                id: name,
-                description: FEATURE_DESCRIPTIONS[name],
+                id: featureInfo.id,
+                name: featureInfo.name,
+                description: featureInfo.description,
                 model: {
                     id: modelId,
                     isDefault: false

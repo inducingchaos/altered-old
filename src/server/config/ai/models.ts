@@ -104,19 +104,55 @@ export const ALLOWED_MODEL_IDS = Object.values(MODEL_IDS)
 // Available AI features/use cases
 export type AIFeature = "thought-generation" | "alias-generation" | "spell-checking"
 
-// Feature descriptions (for UI)
-export const FEATURE_DESCRIPTIONS: Record<AIFeature, string> = {
-    "thought-generation": "Creates new thoughts based on prompts",
-    "alias-generation": "Generates concise aliases for thoughts",
-    "spell-checking": "Corrects spelling and grammar issues"
+// Feature information
+export type FeatureInfo = {
+    id: AIFeature
+    name: string
+    description: string
+    defaultModelId: ModelID
 }
 
-// Default model IDs for each feature
-export const DEFAULT_MODEL_IDS: Record<AIFeature, ModelID> = {
-    "thought-generation": MODEL_IDS.GPT_4O_MINI,
-    "alias-generation": MODEL_IDS.GPT_4O_MINI,
-    "spell-checking": MODEL_IDS.GPT_4O_MINI
+// Consolidated feature definitions
+export const FEATURES: Record<AIFeature, FeatureInfo> = {
+    "thought-generation": {
+        id: "thought-generation",
+        name: "Thought Generation",
+        description: "Creates new thoughts based on prompts",
+        defaultModelId: MODEL_IDS.GPT_4O_MINI
+    },
+    "alias-generation": {
+        id: "alias-generation",
+        name: "Alias Generation",
+        description: "Generates concise aliases for thoughts",
+        defaultModelId: MODEL_IDS.GPT_4O_MINI
+    },
+    "spell-checking": {
+        id: "spell-checking",
+        name: "Spell Checking",
+        description: "Corrects spelling and grammar issues",
+        defaultModelId: MODEL_IDS.GPT_4O_MINI
+    }
 }
+
+// Helper functions to get feature information
+export function getFeatureInfo(featureId: AIFeature): FeatureInfo {
+    return FEATURES[featureId]
+}
+
+// Get default model ID for a feature
+export function getDefaultModelId(featureId: AIFeature): ModelID {
+    return FEATURES[featureId].defaultModelId
+}
+
+// Feature descriptions (for legacy compatibility)
+export const FEATURE_DESCRIPTIONS: Record<AIFeature, string> = Object.fromEntries(
+    Object.entries(FEATURES).map(([id, info]) => [id, info.description])
+) as Record<AIFeature, string>
+
+// Default model IDs for each feature (for legacy compatibility)
+export const DEFAULT_MODEL_IDS: Record<AIFeature, ModelID> = Object.fromEntries(
+    Object.entries(FEATURES).map(([id, info]) => [id, info.defaultModelId])
+) as Record<AIFeature, ModelID>
 
 // --------------------------------------------------
 // Preference Storage
