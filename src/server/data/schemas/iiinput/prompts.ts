@@ -9,7 +9,7 @@ import { createIiinputMysqlTable } from "./helpers"
 
 export const prompts = createIiinputMysqlTable("prompts", {
     id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-    promptId: varchar("prompt_id", { length: 255 }).notNull().unique(),
+    promptId: varchar("prompt_id", { length: 255 }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     content: text("content").notNull(),
 

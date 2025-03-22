@@ -76,6 +76,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         //         }
         //     })
 
+        console.error("Thoughts:", thoughts)
+
         await db.insert(thoughtsSchema).values(thoughts)
 
         return NextResponse.json(thoughts)
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })
         }
+
+        console.error("Error creating thought:", error)
 
         return NextResponse.json({ error: "Failed to create thought." }, { status: 500 })
     }

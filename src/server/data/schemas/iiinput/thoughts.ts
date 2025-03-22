@@ -3,7 +3,7 @@
  */
 
 import { relations } from "drizzle-orm"
-import { index, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { text, timestamp, varchar } from "drizzle-orm/mysql-core"
 import { nanoid } from "nanoid"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
@@ -18,13 +18,13 @@ export const thoughts = createIiinputMysqlTable(
         id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
         userId: varchar("user_id", { length: 255 }).notNull(),
 
-        content: varchar("content", { length: 255 }).notNull(),
+        content: text("content").notNull(),
         attachmentId: varchar("attachment_id", { length: 255 }),
 
         createdAt: timestamp("created_at").notNull().defaultNow(),
         updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
-    },
-    thought => [index("content_idx").on(thought.content)]
+    }
+    // thought => [index("content_idx").on(thought.content)]
 )
 
 export const thoughtsRelations = relations(thoughts, ({ one, many }) => ({
