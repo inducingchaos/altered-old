@@ -1,12 +1,13 @@
 /**
  * Utility to generate aliases for thoughts
  */
-import { openai } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
 import { getSystemPrompt } from "~/server/utils/prompts"
+import { getModelForFeature } from "~/server/utils/model-selector"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
+import { AIFeature } from "../config/ai/models"
 
 /**
  * Generates and stores a concise alias for a thought
@@ -19,8 +20,12 @@ export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<Tho
         // Get the system prompt for alias generation
         const systemPrompt = await getSystemPrompt("alias-generation")
 
+        // Get the preferred model for alias generation
+        const model = await getModelForFeature(AIFeature.ALIAS_GENERATION)
+
+        // Generate the alias
         const result = await generateText({
-            model: openai("gpt-4o-mini"),
+            model,
             system: systemPrompt,
             prompt: thought.content,
             maxTokens: 20

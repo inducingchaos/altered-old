@@ -1,12 +1,11 @@
 /**
- * API route for generating AI responses based on thoughts
+ * API route for correcting spelling errors in text
  */
 
-import { streamText } from "ai"
+import { generateText } from "ai"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
-import { resolvePrompt } from "~/server/utils/prompts"
 import { getModelForFeature } from "~/server/utils/model-selector"
 import { AIFeature } from "~/server/config/ai/models"
 
@@ -28,48 +27,57 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
 
         // Parse the request body
-        const body = (await request.json()) as { prompt?: string }
-        const prompt = body.prompt
+        const body = (await request.json()) as { text?: string }
+        const text = body.text
 
-        if (!prompt) {
+        if (!text) {
             throw new Exception({
                 in: "network",
                 of: "bad-request",
                 with: {
                     external: {
                         label: "Bad Request",
-                        message: "The request body is missing the required 'prompt' field."
+                        message: "The request body is missing the required 'text' field."
                     },
                     internal: {
                         label: "Bad Request",
-                        message: "The request body is missing the required 'prompt' field."
+                        message: "The request body is missing the required 'text' field."
                     }
                 }
             })
         }
 
-        // Get the fully resolved system prompt with variables populated
-        const systemPrompt = await resolvePrompt("thought-generation")
+        // Get the preferred model for spelling correction
+        const model = await getModelForFeature(AIFeature.SPELLING_CORRECTION)
 
-        // Get the preferred model for thought generation
-        const model = await getModelForFeature(AIFeature.THOUGHT_GENERATION)
+        // Create a system prompt for spelling correction
+        const systemPrompt = `
+            You are a spelling and grammar correction assistant.
+            Your task is to correct any spelling and grammar errors in the provided text.
+            Return ONLY the corrected text with no additional explanations.
+            Maintain the original style, tone, and formatting.
+        `.trim()
 
-        // Create a stream using streamText with explicit typing
-        const result = streamText({
+        // Generate the corrected text
+        const result = await generateText({
             model,
             system: systemPrompt,
-            prompt: prompt
+            prompt: text
         })
 
-        // Return the streaming response
-        return result.toTextStreamResponse() as NextResponse
+        // Return the corrected text
+        return NextResponse.json({
+            original: text,
+            corrected: result.text,
+            success: true
+        })
     } catch (error) {
-        console.error("Error in generate endpoint:", error)
+        console.error("Error in spelling correction endpoint:", error)
 
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })
         }
 
-        return NextResponse.json({ error: "Failed to generate response." }, { status: 500 })
+        return NextResponse.json({ error: "Failed to correct spelling.", success: false }, { status: 500 })
     }
 }
