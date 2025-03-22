@@ -10,6 +10,7 @@ import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { thoughts, type Thought } from "~/server/data/schemas/iiinput"
+import { temp } from "~/server/data/schemas/iiinput/temp"
 import { ensureThoughtAlias } from "~/server/utils/alias-generator"
 import { setTempValue } from "~/server/utils/alias-manager"
 
@@ -136,7 +137,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
             })
         }
 
-        // Delete the thought with the specified ID
+        // First delete all temp values associated with this thought
+        await db.delete(temp).where(eq(temp.thoughtId, thoughtId))
+
+        // Then delete the thought with the specified ID
         const result = await db.delete(thoughts).where(eq(thoughts.id, thoughtId))
 
         // Check if any rows were affected

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         // Map to dataset format - ensuring correct types
         const allDatasets: Dataset[] = datasets.map(d => {
             // Ensure string types
-            const id = String(d.thoughtId || "")
+            const id = String(d.id || "")
             const title = String(d.value || "")
             return { id, title }
         })
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             id: nanoid(),
             key: "dataset_title",
             value: title,
-            thoughtId: datasetId,
+            thoughtId: "n-a",
             createdAt: new Date(),
             updatedAt: new Date()
         })
