@@ -2,20 +2,53 @@
  * Utility to generate aliases for thoughts
  */
 import { generateText } from "ai"
+import { and, eq } from "drizzle-orm"
 import { db } from "~/server/data"
 import { temp } from "~/server/data/schemas/iiinput/temp"
 import { getSystemPrompt } from "~/server/utils/prompts"
 import { getModelForFeature } from "~/server/utils/model-selector"
+import { SYSTEM_PREFERENCES_THOUGHT_ID, SYSTEM_PREFERENCE_KEYS } from "~/server/config/preferences"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
+
+/**
+ * Checks if automatic alias generation is enabled
+ * Returns true by default if the preference doesn't exist
+ */
+export async function isAliasGenerationEnabled(): Promise<boolean> {
+    try {
+        const preference = await db.query.temp.findFirst({
+            where: and(
+                eq(temp.thoughtId, SYSTEM_PREFERENCES_THOUGHT_ID),
+                eq(temp.key, SYSTEM_PREFERENCE_KEYS.AUTO_GENERATE_ALIASES)
+            )
+        })
+
+        // If preference doesn't exist, default to true
+        if (!preference) {
+            return true
+        }
+
+        // Parse the preference value as a bool from string, default to false if not right
+        return preference.value === "true"
+    } catch (error) {
+        console.error("Error checking alias generation preference:", error)
+        return true // Default to enabled if there's an error
+    }
+}
 
 /**
  * Generates and stores a concise alias for a thought
  * Will only generate an alias if one doesn't already exist
- *
- * rename to generateAlias cuz we check elsewhere
+ * and if automatic alias generation is enabled
  */
 export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<ThoughtWithAlias> {
     try {
+        // Check if alias generation is enabled
+        const isEnabled = await isAliasGenerationEnabled()
+        if (!isEnabled) {
+            return thought
+        }
+
         // Get the system prompt for alias generation
         const systemPrompt = await getSystemPrompt("alias-generation")
 

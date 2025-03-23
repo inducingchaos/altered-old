@@ -88,7 +88,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             id: nanoid(),
             key: "dataset_title",
             value: title,
-            thoughtId: "n-a",
+            thoughtId: "kv",
             createdAt: new Date(),
             updatedAt: new Date()
         })
