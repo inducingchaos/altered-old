@@ -4,11 +4,14 @@
 
 // spell-checker: disable
 
+import { nanoid } from "nanoid"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
+import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
 import { thoughts as thoughtsSchema } from "~/server/data/schemas/iiinput/thoughts"
+import { ensureThoughtsAliases, isAliasGenerationEnabled } from "~/server/utils/alias-generator"
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
@@ -38,6 +41,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }
         ]
 
+        console.log("payload", payload)
+
         if (!payload.length)
             throw new Exception({
                 in: "network",
@@ -54,33 +59,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 }
             })
 
-        const thoughts = payload.map(thought => ({
-            content: thought.TEMP_content,
+        // Create thoughts with pre-generated IDs so we know them before insertion
+        const thoughtsToCreate = payload.map(thought => {
+            const id = nanoid()
+            return {
+                id,
+                content: thought.TEMP_content,
+                userId: process.env.ME!,
+                alias: thought.TEMP_alias
+            }
+        })
 
-            userId: process.env.ME!
-        }))
+        // Insert the thoughts
+        await db.insert(thoughtsSchema).values(thoughtsToCreate)
 
-        // if (!thoughtData.content || !thoughtData.userId)
-        //     throw new Exception({
-        //         in: "network",
-        //         of: "bad-request",
-        //         with: {
-        //             external: {
-        //                 label: "Bad Request",
-        //                 message: "The request body is missing the required 'content' and 'userId' fields."
-        //             },
-        //             internal: {
-        //                 label: "Bad Request",
-        //                 message: "The request body is missing the required 'content' and 'userId' fields."
-        //             }
-        //         }
-        //     })
+        //  MOVE THE ALIAS GEN TO AN "AFTER" run with Vercel
 
-        console.error("Thoughts:", thoughts)
+        let thoughtsNeedingAliases = thoughtsToCreate.filter(thought => !thought.alias) as (Thought & { alias?: string })[]
 
-        await db.insert(thoughtsSchema).values(thoughts)
+        // Generate aliases for newly created thoughts if auto-generation is enabled
+        const isAliasEnabled = await isAliasGenerationEnabled()
 
-        return NextResponse.json(thoughts)
+        if (isAliasEnabled) {
+            // Generate aliases for the newly created thoughts
+            thoughtsNeedingAliases = await ensureThoughtsAliases(thoughtsNeedingAliases)
+        }
+
+        console.log("thoughtsNeedingAliases", thoughtsNeedingAliases)
+
+        return NextResponse.json([
+            ...thoughtsNeedingAliases,
+            ...thoughtsToCreate.filter(thought => !thoughtsNeedingAliases.some(aliasThought => aliasThought.id === thought.id))
+        ])
     } catch (error) {
         if (error instanceof Exception) {
             return createNetworkResponse({ using: error })

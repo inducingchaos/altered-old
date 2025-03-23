@@ -11,7 +11,6 @@ import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { thoughts, type Thought } from "~/server/data/schemas/iiinput"
 import { temp } from "~/server/data/schemas/iiinput/temp"
-import { ensureThoughtAlias } from "~/server/utils/alias-generator"
 import { setTempValue } from "~/server/utils/alias-manager"
 
 function isAuthedSimple(request: NextRequest): boolean {
@@ -86,14 +85,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 })
             )
         } as Thought & Record<string, unknown>
-
-        // Ensure alias exists
-        if (!response.alias) {
-            const withAlias = await ensureThoughtAlias(response)
-            if (withAlias.alias) {
-                response.alias = withAlias.alias
-            }
-        }
 
         return NextResponse.json(response)
     } catch (error) {
@@ -335,6 +326,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             Object.assign(response, thoughtUpdates)
             response.updatedAt = new Date() // Update the timestamp in the response
         }
+
+        //  COULD ADD ALIAS GENERATION HERE IF NEEDED BASED ON IF THE CONTENT HAS CHANGED
 
         // Process temp value updates
         for (const [key, value] of Object.entries(tempUpdates)) {

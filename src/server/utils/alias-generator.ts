@@ -43,12 +43,6 @@ export async function isAliasGenerationEnabled(): Promise<boolean> {
  */
 export async function ensureThoughtAlias(thought: ThoughtWithAlias): Promise<ThoughtWithAlias> {
     try {
-        // Check if alias generation is enabled
-        const isEnabled = await isAliasGenerationEnabled()
-        if (!isEnabled) {
-            return thought
-        }
-
         // Get the system prompt for alias generation
         const systemPrompt = await getSystemPrompt("alias-generation")
 

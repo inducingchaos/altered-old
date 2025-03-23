@@ -12,7 +12,6 @@ import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { thoughts } from "~/server/data/schemas/iiinput"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
-import { ensureThoughtsAliases } from "~/server/utils/alias-generator"
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
@@ -85,26 +84,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 }) as ThoughtWithAlias & Record<string, unknown>
         )
 
-        // Generate aliases for thoughts that need them
-        // First, filter out thoughts that need aliases
-        const thoughtsNeedingAliases = thoughtsWithAliases.filter(t => t.alias === undefined)
+        // We no longer need to generate aliases here as they should be created at thought creation time
+        // This just returns the thoughts with their existing aliases
 
-        // Then generate aliases for them
-        const updatedThoughts = await ensureThoughtsAliases(thoughtsNeedingAliases)
-
-        const thoughtsWithGuaranteedAliases = thoughtsWithAliases.map(original => {
-            if (!original.alias) {
-                const updated = updatedThoughts.find(updated => updated.id === original.id)
-                if (updated && updated.alias) {
-                    return { ...original, alias: updated.alias }
-                }
-            }
-            return original
-        })
-
-        const sortedThoughts = thoughtsWithGuaranteedAliases
-
-        return NextResponse.json(sortedThoughts)
+        return NextResponse.json(thoughtsWithAliases)
     } catch (error) {
         console.error("Error fetching thoughts:", error)
 
