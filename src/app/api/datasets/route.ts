@@ -18,6 +18,26 @@ export type Dataset = {
     title: string
 }
 
+export async function getDatasets(search?: string): Promise<Dataset[]> {
+    // Find all temp rows with key="dataset_title" to get all datasets
+    const datasets = await db.query.temp.findMany({
+        where: eq(temp.key, "dataset_title")
+    })
+
+    // Map to dataset format - ensuring correct types
+    const allDatasets: Dataset[] = datasets.map(d => {
+        // Ensure string types
+        const id = String(d.id || "")
+        const title = String(d.value || "")
+        return { id, title }
+    })
+
+    // Filter datasets if search query is provided
+    const filteredDatasets = search ? allDatasets.filter(d => d.title.toLowerCase().includes(search)) : allDatasets
+
+    return filteredDatasets
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAuthedSimple(request)) {
@@ -30,25 +50,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         }
 
         const searchParams = request.nextUrl.searchParams
-        const query = searchParams.get("search")?.toLowerCase()
+        const search = searchParams.get("search")?.toLowerCase()
 
-        // Find all temp rows with key="dataset_title" to get all datasets
-        const datasets = await db.query.temp.findMany({
-            where: eq(temp.key, "dataset_title")
-        })
-
-        // Map to dataset format - ensuring correct types
-        const allDatasets: Dataset[] = datasets.map(d => {
-            // Ensure string types
-            const id = String(d.id || "")
-            const title = String(d.value || "")
-            return { id, title }
-        })
-
-        // Filter datasets if search query is provided
-        const filteredDatasets = query ? allDatasets.filter(d => d.title.toLowerCase().includes(query)) : allDatasets
-
-        return NextResponse.json(filteredDatasets)
+        return NextResponse.json(await getDatasets(search))
     } catch (error) {
         console.error("Error fetching datasets:", error)
 

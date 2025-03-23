@@ -42,6 +42,39 @@ async function getAllModelPreferences(): Promise<Map<AIFeature, ModelID>> {
     return preferencesMap
 }
 
+type AiFeatureInfo = {
+    id: AIFeature
+    name: string
+    description: string
+    model: {
+        id: ModelID
+        isDefault: boolean
+    }
+}
+
+export async function getAiFeatures(): Promise<AiFeatureInfo[]> {
+    // Get all model preferences
+    const preferencesMap = await getAllModelPreferences()
+
+    // Build response with feature information
+    const featuresInfo = Object.values(FEATURES).map(feature => {
+        const preferredModelId = preferencesMap.get(feature.id) ?? feature.defaultModelId
+        const isDefault = !preferencesMap.has(feature.id)
+
+        return {
+            id: feature.id,
+            name: feature.name,
+            description: feature.description,
+            model: {
+                id: preferredModelId,
+                isDefault
+            }
+        }
+    })
+
+    return featuresInfo
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         // Check authentication
@@ -54,24 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             })
         }
 
-        // Get all model preferences
-        const preferencesMap = await getAllModelPreferences()
-
-        // Build response with feature information
-        const featuresInfo = Object.values(FEATURES).map(feature => {
-            const preferredModelId = preferencesMap.get(feature.id) ?? feature.defaultModelId
-            const isDefault = !preferencesMap.has(feature.id)
-
-            return {
-                id: feature.id,
-                name: feature.name,
-                description: feature.description,
-                model: {
-                    id: preferredModelId,
-                    isDefault
-                }
-            }
-        })
+        const featuresInfo = await getAiFeatures()
 
         // Return features as a direct array
         return NextResponse.json(featuresInfo)
