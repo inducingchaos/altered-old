@@ -41,8 +41,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }
         ]
 
-        console.log("payload", payload)
-
         if (!payload.length)
             throw new Exception({
                 in: "network",

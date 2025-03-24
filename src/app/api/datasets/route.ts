@@ -78,7 +78,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
 
         const body = await request.json()
-        const { title } = body as { title: string }
+        const { title, id } = body as { title: string; id?: string }
 
         if (!title) {
             return NextResponse.json({ error: "Title is required." }, { status: 400 })
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         // Insert dataset title as a temp value
         await db.insert(temp).values({
-            id: nanoid(),
+            id: id ?? nanoid(),
             key: "dataset_title",
             value: title,
             thoughtId: "kv",
