@@ -16,6 +16,8 @@ function isAuthedSimple(request: NextRequest): boolean {
 export type Dataset = {
     id: string
     title: string
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 export async function getDatasets(search?: string): Promise<Dataset[]> {
@@ -29,7 +31,12 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
         // Ensure string types
         const id = String(d.id || "")
         const title = String(d.value || "")
-        return { id, title }
+        return {
+            id,
+            title,
+            createdAt: d.createdAt,
+            updatedAt: d.updatedAt
+        }
     })
 
     // Filter datasets if search query is provided
