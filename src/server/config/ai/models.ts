@@ -29,7 +29,7 @@ export const MODEL_IDS = {
     GPT_4O_MINI: "gpt-4o-mini",
 
     // Anthropic models
-    CLAUDE_3_7_SONNET: "claude-3-7-sonnet",
+    CLAUDE_3_7_SONNET: "claude-3-7-sonnet-latest",
 
     // xAI (Grok) models
     GROK_2: "grok-2"
