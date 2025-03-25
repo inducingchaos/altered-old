@@ -16,6 +16,7 @@ function isAuthedSimple(request: NextRequest): boolean {
 export type Dataset = {
     id: string
     title: string
+    description?: string
     createdAt?: Date
     updatedAt?: Date
     thoughts: string[]
@@ -33,10 +34,17 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
         where: eq(temp.key, "datasets")
     })
 
+    // Find all dataset-description relations
+    const datasetDescriptions = await db.query.temp.findMany({
+        where: eq(temp.key, "dataset_description")
+    })
+
     // Create a mapping of dataset IDs to thought IDs
     const datasetToThoughts: Record<string, string[]> = {}
 
     // Process each relation entry
+
+    // since we use the thoughtID as the datasetID for dataset descriptions, we need to handle that edge case specifically
     datasetRelations.forEach(relation => {
         try {
             // Parse the value which contains stringified array of dataset IDs
@@ -49,6 +57,7 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
                     if (!datasetToThoughts[datasetId]) {
                         datasetToThoughts[datasetId] = []
                     }
+
                     // Avoid duplicate thoughtIds
                     if (!datasetToThoughts[datasetId].includes(thoughtId)) {
                         datasetToThoughts[datasetId].push(thoughtId)
@@ -76,8 +85,18 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
         }
     })
 
+    const allDatasetsWithDescriptions = allDatasets.map(d => {
+        const description = datasetDescriptions.find(desc => desc.thoughtId === d.id)?.value
+        return {
+            ...d,
+            description: description ?? ""
+        }
+    })
+
     // Filter datasets if search query is provided
-    const filteredDatasets = search ? allDatasets.filter(d => d.title.toLowerCase().includes(search)) : allDatasets
+    const filteredDatasets = search
+        ? allDatasetsWithDescriptions.filter(d => d.title.toLowerCase().includes(search))
+        : allDatasetsWithDescriptions
 
     return filteredDatasets
 }
@@ -122,18 +141,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
 
         const body = await request.json()
-        const { title, id } = body as { title: string; id?: string }
+        const { title, id, description } = body as { title: string; id?: string; description?: string }
 
         if (!title) {
             return NextResponse.json({ error: "Title is required." }, { status: 400 })
         }
 
         // Generate a unique ID for the dataset (will be used as the thoughtId in the temp table)
-        const datasetId = nanoid()
+        const datasetId = id ?? nanoid()
 
         // Insert dataset title as a temp value
         await db.insert(temp).values({
-            id: id ?? nanoid(),
+            id: datasetId,
             key: "dataset_title",
             value: title,
             thoughtId: "kv",
@@ -141,9 +160,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             updatedAt: new Date()
         })
 
+        // Insert dataset description as a temp value
+        await db.insert(temp).values({
+            id: nanoid(),
+            key: "dataset_description",
+            value: description ?? "",
+            thoughtId: datasetId
+        })
+
         const dataset: Dataset = {
             id: datasetId,
             title,
+            description: description ?? "",
             thoughts: []
         }
 

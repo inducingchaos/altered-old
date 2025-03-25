@@ -1,4 +1,5 @@
 import { eq, and } from "drizzle-orm"
+import { nanoid } from "nanoid"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
@@ -57,6 +58,8 @@ async function deleteDatasetRelations(datasetId: string): Promise<void> {
                 // Continue with next relation even if one fails
             }
         }
+
+        await db.delete(temp).where(and(eq(temp.key, "dataset_description"), eq(temp.thoughtId, datasetId)))
     } catch (error) {
         console.error("Error deleting dataset relations:", error)
         throw error
@@ -80,23 +83,41 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             return NextResponse.json({ error: "Dataset ID is required." }, { status: 400 })
         }
 
-        const { title } = (await request.json()) as { title: string }
+        const { title, description } = (await request.json()) as { title?: string; description?: string }
 
-        if (!title) {
-            return NextResponse.json({ error: "Title is required." }, { status: 400 })
+        // check if the dataset exists and get the title
+        const dataset = await db.query.temp.findFirst({
+            where: and(eq(temp.id, id), eq(temp.key, "dataset_title"))
+        })
+
+        if (!dataset) {
+            return NextResponse.json({ error: "Dataset not found." }, { status: 404 })
         }
 
-        // Update the dataset title and check if it exists
-        const { rowsAffected } = await db
-            .update(temp)
-            .set({
-                value: title,
-                updatedAt: new Date()
-            })
-            .where(and(eq(temp.id, id), eq(temp.key, "dataset_title")))
+        // update title if needed
+        if (title) {
+            // Update the dataset title and check if it exists
+            await db
+                .update(temp)
+                .set({
+                    value: title,
+                    updatedAt: new Date()
+                })
+                .where(and(eq(temp.id, id), eq(temp.key, "dataset_title")))
+        }
 
-        if (rowsAffected === 0) {
-            return NextResponse.json({ error: "Dataset not found." }, { status: 404 })
+        //  Find the dataset description first
+        const datasetDescription = await db.query.temp.findFirst({
+            where: and(eq(temp.key, "dataset_description"), eq(temp.thoughtId, id))
+        })
+
+        if (datasetDescription) {
+            await db
+                .update(temp)
+                .set({ value: description ?? "" })
+                .where(and(eq(temp.id, datasetDescription.id), eq(temp.key, "dataset_description")))
+        } else {
+            await db.insert(temp).values({ id: nanoid(), key: "dataset_description", value: description ?? "", thoughtId: id })
         }
 
         return NextResponse.json({
@@ -104,7 +125,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             message: "Dataset updated successfully.",
             dataset: {
                 id,
-                title,
+                title: title ?? dataset.value,
+                description: description ?? "",
                 updatedAt: new Date()
             }
         })
