@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { eq } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
@@ -23,7 +23,8 @@ export type Dataset = {
 export async function getDatasets(search?: string): Promise<Dataset[]> {
     // Find all temp rows with key="dataset_title" to get all datasets
     const datasets = await db.query.temp.findMany({
-        where: eq(temp.key, "dataset_title")
+        where: eq(temp.key, "dataset_title"),
+        orderBy: [desc(temp.updatedAt)]
     })
 
     // Map to dataset format - ensuring correct types
