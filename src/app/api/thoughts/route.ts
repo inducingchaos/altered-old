@@ -21,11 +21,16 @@ export function isAuthedSimple(request: NextRequest): boolean {
 type ThoughtWithAlias = Thought & { alias?: string; "dev-notes"?: string }
 type CamelCaseThoughtWithAlias = Thought & { alias?: string; devNotes?: string }
 
-export async function getAllThoughts(query?: string): Promise<CamelCaseThoughtWithAlias[]> {
-    const userId = process.env.ME ?? ""
+type PaginationParams = {
+    limit?: number
+    offset?: number
+}
 
-    // if no query, limit to 25
-    const limit = query ? undefined : 100
+export async function getAllThoughts(query?: string, pagination?: PaginationParams): Promise<CamelCaseThoughtWithAlias[]> {
+    const userId = process.env.ME ?? ""
+    const { limit = 25, offset = 0 } = pagination ?? {}
+
+    // let isEnd = false
 
     let allThoughts = await db.query.thoughts.findMany({
         with: {
@@ -33,8 +38,13 @@ export async function getAllThoughts(query?: string): Promise<CamelCaseThoughtWi
         },
         where: eq(thoughts.userId, userId),
         orderBy: desc(thoughts.updatedAt),
-        limit
+        limit: query ? undefined : limit,
+        offset: query ? undefined : offset
     })
+
+    if (allThoughts.length < limit) {
+        // isEnd = true
+    }
 
     // move FUSE filtering here to avoid unnecessary updates
 
@@ -45,7 +55,12 @@ export async function getAllThoughts(query?: string): Promise<CamelCaseThoughtWi
             includeScore: true
         })
         const searchResults = fuse.search(query)
-        allThoughts = searchResults.map(result => result.item).slice(0, 100)
+        // manually implement pagination
+        allThoughts = searchResults.map(result => result.item).slice(offset, offset + limit)
+
+        if (searchResults.length < limit) {
+            // isEnd = true
+        }
     }
 
     // remap thoughts to have alias top level w/o tempValues
@@ -101,8 +116,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
         const searchParams = request.nextUrl.searchParams
         const query = searchParams.get("search") ?? undefined
+        const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined
+        const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined
 
-        const thoughts = await getAllThoughts(query)
+        // Validate pagination parameters
+        if (limit !== undefined && (isNaN(limit) || limit < 1 || limit > 100)) {
+            return NextResponse.json({ error: "Limit must be between 1 and 100." }, { status: 400 })
+        }
+
+        if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+            return NextResponse.json({ error: "Offset must be a non-negative number." }, { status: 400 })
+        }
+
+        const thoughts = await getAllThoughts(query, { limit, offset })
 
         return NextResponse.json(thoughts)
     } catch (error) {
