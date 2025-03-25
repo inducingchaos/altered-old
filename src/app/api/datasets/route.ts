@@ -18,6 +18,7 @@ export type Dataset = {
     title: string
     createdAt?: Date
     updatedAt?: Date
+    thoughts: string[]
 }
 
 export async function getDatasets(search?: string): Promise<Dataset[]> {
@@ -27,16 +28,51 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
         orderBy: [desc(temp.updatedAt)]
     })
 
+    // Find all dataset-thought relations
+    const datasetRelations = await db.query.temp.findMany({
+        where: eq(temp.key, "datasets")
+    })
+
+    // Create a mapping of dataset IDs to thought IDs
+    const datasetToThoughts: Record<string, string[]> = {}
+
+    // Process each relation entry
+    datasetRelations.forEach(relation => {
+        try {
+            // Parse the value which contains stringified array of dataset IDs
+            const datasetIds = JSON.parse(String(relation.value ?? "[]")) as string[]
+            const thoughtId = relation.thoughtId
+
+            // For each dataset ID in this relation, add the thought ID to its mapping
+            if (thoughtId) {
+                datasetIds.forEach(datasetId => {
+                    if (!datasetToThoughts[datasetId]) {
+                        datasetToThoughts[datasetId] = []
+                    }
+                    // Avoid duplicate thoughtIds
+                    if (!datasetToThoughts[datasetId].includes(thoughtId)) {
+                        datasetToThoughts[datasetId].push(thoughtId)
+                    }
+                })
+            }
+        } catch (error) {
+            console.error("Error parsing dataset relation:", error)
+        }
+    })
+
     // Map to dataset format - ensuring correct types
     const allDatasets: Dataset[] = datasets.map(d => {
         // Ensure string types
-        const id = String(d.id || "")
-        const title = String(d.value || "")
+        const id = String(d.id ?? "")
+        const title = String(d.value ?? "")
+
         return {
             id,
             title,
             createdAt: d.createdAt,
-            updatedAt: d.updatedAt
+            updatedAt: d.updatedAt,
+            // Add the thoughts array from our mapping, or empty array if none found
+            thoughts: datasetToThoughts[id] ?? []
         }
     })
 
@@ -107,7 +143,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         const dataset: Dataset = {
             id: datasetId,
-            title
+            title,
+            thoughts: []
         }
 
         return NextResponse.json(dataset)
