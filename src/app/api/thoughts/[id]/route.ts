@@ -296,7 +296,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                     stringValue = String(value as number | boolean)
                 }
 
-                tempUpdates[actualKey] = stringValue
+                // convert to kebab-case from camelCase
+                const kebabCaseKey = actualKey.replace(/([A-Z])/g, "-$1").toLowerCase()
+
+                tempUpdates[kebabCaseKey] = stringValue
             }
         }
 

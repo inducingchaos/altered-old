@@ -12,6 +12,7 @@ import { db } from "~/server/data"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
 import { thoughts as thoughtsSchema } from "~/server/data/schemas/iiinput/thoughts"
 import { ensureThoughtsAliases, isAliasGenerationEnabled } from "~/server/utils/alias-generator"
+import { setTempValue } from "~/server/utils/alias-manager"
 
 function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 TEMP_priority: number
                 TEMP_sensitive: boolean
                 TEMP_datasets: string[]
+                TEMP_devNotes?: string
             }
         ]
 
@@ -64,16 +66,61 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 id,
                 content: thought.TEMP_content,
                 userId: process.env.ME!,
-                alias: thought.TEMP_alias
+                alias: thought.TEMP_alias,
+                devNotes: thought.TEMP_devNotes
             }
         })
 
         // Insert the thoughts
-        await db.insert(thoughtsSchema).values(thoughtsToCreate)
+        await db.insert(thoughtsSchema).values(
+            thoughtsToCreate.map(thought => ({
+                id: thought.id,
+                content: thought.content,
+                userId: thought.userId
+            }))
+        )
+
+        // Save all temp values for each thought
+        await Promise.all(
+            thoughtsToCreate.flatMap(thought => {
+                const tempValues = []
+
+                // Save alias as temp value if provided
+                if (thought.alias) {
+                    tempValues.push(setTempValue(thought.id, "alias", thought.alias))
+                }
+
+                // Save dev notes as temp value if provided
+                if (thought.devNotes) {
+                    tempValues.push(setTempValue(thought.id, "dev-notes", thought.devNotes))
+                }
+
+                // Save other temp values from the original payload
+                const originalThought = payload.find(p => p.TEMP_content === thought.content)
+                if (originalThought) {
+                    if (originalThought.TEMP_priority) {
+                        tempValues.push(setTempValue(thought.id, "priority", String(originalThought.TEMP_priority)))
+                    }
+
+                    if (originalThought.TEMP_sensitive !== undefined) {
+                        tempValues.push(setTempValue(thought.id, "sensitive", String(originalThought.TEMP_sensitive)))
+                    }
+
+                    if (originalThought.TEMP_datasets && originalThought.TEMP_datasets.length > 0) {
+                        tempValues.push(setTempValue(thought.id, "datasets", JSON.stringify(originalThought.TEMP_datasets)))
+                    }
+                }
+
+                return tempValues
+            })
+        )
 
         //  MOVE THE ALIAS GEN TO AN "AFTER" run with Vercel
 
-        let thoughtsNeedingAliases = thoughtsToCreate.filter(thought => !thought.alias) as (Thought & { alias?: string })[]
+        let thoughtsNeedingAliases = thoughtsToCreate.filter(thought => !thought.alias) as (Thought & {
+            alias?: string
+            devNotes?: string
+        })[]
 
         // Generate aliases for newly created thoughts if auto-generation is enabled
         const isAliasEnabled = await isAliasGenerationEnabled()
@@ -82,8 +129,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             // Generate aliases for the newly created thoughts
             thoughtsNeedingAliases = await ensureThoughtsAliases(thoughtsNeedingAliases)
         }
-
-        console.log("thoughtsNeedingAliases", thoughtsNeedingAliases)
 
         return NextResponse.json([
             ...thoughtsNeedingAliases,

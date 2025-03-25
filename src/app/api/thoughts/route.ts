@@ -18,9 +18,10 @@ export function isAuthedSimple(request: NextRequest): boolean {
     return authHeader === `Bearer ${process.env.SIMPLE_INTERNAL_SECRET}`
 }
 
-type ThoughtWithAlias = Thought & { alias?: string }
+type ThoughtWithAlias = Thought & { alias?: string; "dev-notes"?: string }
+type CamelCaseThoughtWithAlias = Thought & { alias?: string; devNotes?: string }
 
-export async function getAllThoughts(query?: string): Promise<ThoughtWithAlias[]> {
+export async function getAllThoughts(query?: string): Promise<CamelCaseThoughtWithAlias[]> {
     const userId = process.env.ME ?? ""
 
     // if no query, limit to 25
@@ -39,7 +40,7 @@ export async function getAllThoughts(query?: string): Promise<ThoughtWithAlias[]
 
     if (query) {
         const fuse = new Fuse(allThoughts, {
-            keys: ["content", "alias"],
+            keys: ["content", "alias", "dev-notes"],
             threshold: 0.4,
             includeScore: true
         })
@@ -71,10 +72,20 @@ export async function getAllThoughts(query?: string): Promise<ThoughtWithAlias[]
             }) as ThoughtWithAlias & Record<string, unknown>
     )
 
+    // re-map to camelCase
+    const thoughtsWithAliasesCamelCase = thoughtsWithAliases.map(t => {
+        const camelCaseObject: Record<string, unknown> = {}
+        for (const [key, value] of Object.entries(t)) {
+            const camelCaseKey = key.replace(/-([a-z])/g, (_, letter) => (letter as string).toUpperCase())
+            camelCaseObject[camelCaseKey] = value
+        }
+        return camelCaseObject as CamelCaseThoughtWithAlias
+    })
+
     // We no longer need to generate aliases here as they should be created at thought creation time
     // This just returns the thoughts with their existing aliases
 
-    return thoughtsWithAliases
+    return thoughtsWithAliasesCamelCase
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
