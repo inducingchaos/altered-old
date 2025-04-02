@@ -59,7 +59,11 @@ async function deleteDatasetRelations(datasetId: string): Promise<void> {
             }
         }
 
+        // Delete dataset description
         await db.delete(temp).where(and(eq(temp.key, "dataset_description"), eq(temp.thoughtId, datasetId)))
+
+        // Delete dataset sorting
+        await db.delete(temp).where(and(eq(temp.key, "dataset-sorting"), eq(temp.thoughtId, datasetId)))
     } catch (error) {
         console.error("Error deleting dataset relations:", error)
         throw error

@@ -4,7 +4,7 @@
 
 // spell-checker: disable
 
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
 import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
@@ -126,6 +126,31 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
                     }
                 }
             })
+        }
+
+        // Get all dataset sorting orders that contain this thought
+        const sortingOrders = await db.query.temp.findMany({
+            where: eq(temp.key, "dataset-sorting")
+        })
+
+        // Update each sorting order that contains the thought ID
+        for (const order of sortingOrders) {
+            try {
+                const thoughtIds = JSON.parse(String(order.value ?? "[]")) as string[]
+                if (thoughtIds.includes(thoughtId)) {
+                    const updatedThoughtIds = thoughtIds.filter(id => id !== thoughtId)
+                    await db
+                        .update(temp)
+                        .set({
+                            value: JSON.stringify(updatedThoughtIds),
+                            updatedAt: new Date()
+                        })
+                        .where(and(eq(temp.id, order.id), eq(temp.key, "dataset-sorting")))
+                }
+            } catch (error) {
+                console.error("Error updating sorting order:", error instanceof Error ? error.message : String(error))
+                // Continue with next order even if one fails
+            }
         }
 
         // First delete all temp values associated with this thought
@@ -252,45 +277,68 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                     )
                 }
 
-                // Validate datasets array
-                if (actualKey === "datasets") {
-                    if (!Array.isArray(value)) {
-                        return NextResponse.json(
-                            {
-                                error: "Datasets must be an array of strings."
-                            },
-                            { status: 400 }
-                        )
-                    }
-                    if (!value.every(v => typeof v === "string")) {
-                        return NextResponse.json(
-                            {
-                                error: "All dataset IDs must be strings."
-                            },
-                            { status: 400 }
-                        )
-                    }
-                }
-
                 // Convert objects to JSON strings to avoid [object Object]
                 let stringValue: string
 
-                if (Array.isArray(value)) {
-                    // Special handling for arrays - we still need to stringify but mark it for proper parsing
-                    stringValue = JSON.stringify(value)
-                } else if (typeof value === "object" && value !== null) {
+                if (actualKey === "datasets") {
                     try {
-                        stringValue = JSON.stringify(value)
-                    } catch {
+                        // Validate datasets array
+                        const newDatasets = JSON.parse(value as string) as string[]
+                        if (!Array.isArray(newDatasets)) {
+                            return NextResponse.json(
+                                {
+                                    error: "Datasets must be an array."
+                                },
+                                { status: 400 }
+                            )
+                        }
+
+                        // Get current datasets to find removed ones
+                        const currentDatasetsTemp = existingThought.tempValues.find(tv => tv.key === "datasets")
+                        const currentDatasets = currentDatasetsTemp ? (JSON.parse(currentDatasetsTemp.value) as string[]) : []
+
+                        // Find datasets that the thought was removed from
+                        const removedDatasets = currentDatasets.filter(id => !newDatasets.includes(id))
+
+                        // Update sorting orders for datasets that lost this thought
+                        for (const datasetId of removedDatasets) {
+                            const sortingOrder = await db.query.temp.findFirst({
+                                where: and(eq(temp.thoughtId, datasetId), eq(temp.key, "dataset-sorting"))
+                            })
+
+                            if (sortingOrder) {
+                                try {
+                                    const thoughtIds = JSON.parse(sortingOrder.value) as string[]
+                                    if (thoughtIds.includes(thoughtId)) {
+                                        const updatedThoughtIds = thoughtIds.filter(id => id !== thoughtId)
+                                        await db
+                                            .update(temp)
+                                            .set({
+                                                value: JSON.stringify(updatedThoughtIds),
+                                                updatedAt: new Date()
+                                            })
+                                            .where(and(eq(temp.id, sortingOrder.id), eq(temp.key, "dataset-sorting")))
+                                    }
+                                } catch (error) {
+                                    console.error(
+                                        "Error updating sorting order:",
+                                        error instanceof Error ? error.message : String(error)
+                                    )
+                                }
+                            }
+                        }
+
+                        stringValue = JSON.stringify(newDatasets)
+                    } catch (error) {
+                        const message = error instanceof Error ? error.message : String(error)
+                        console.error("Error processing datasets:", message)
                         return NextResponse.json(
                             {
-                                error: "Invalid temp value. Must be a string or JSON object."
+                                error: "Invalid datasets array format."
                             },
                             { status: 400 }
                         )
                     }
-                } else if (typeof value === "string") {
-                    stringValue = value
                 } else {
                     // Convert to string safely (for numbers, booleans, etc.)
                     stringValue = String(value as number | boolean)
