@@ -4,7 +4,7 @@
 
 // copied over from generate
 
-import { desc, eq } from "drizzle-orm"
+import { desc, eq, count } from "drizzle-orm"
 import Fuse from "fuse.js"
 import { NextResponse, type NextRequest } from "next/server"
 import { Exception, type NetworkExceptionID } from "~/packages/sdkit/src/meta"
@@ -26,12 +26,18 @@ type PaginationParams = {
     offset?: number
 }
 
-export async function getAllThoughts(query?: string, pagination?: PaginationParams): Promise<CamelCaseThoughtWithAlias[]> {
+export async function getAllThoughts(
+    query?: string,
+    pagination?: PaginationParams
+): Promise<{
+    thoughts: CamelCaseThoughtWithAlias[]
+    total: number
+}> {
     const userId = process.env.ME ?? ""
     const { limit = 25, offset = 0 } = pagination ?? {}
 
-    // let isEnd = false
-
+    // Get total count first
+    let totalCount = 0
     let allThoughts = await db.query.thoughts.findMany({
         with: {
             tempValues: true
@@ -42,25 +48,28 @@ export async function getAllThoughts(query?: string, pagination?: PaginationPara
         offset: query ? undefined : offset
     })
 
-    if (allThoughts.length < limit) {
-        // isEnd = true
-    }
-
-    // move FUSE filtering here to avoid unnecessary updates
-
+    // Get total count based on whether we're searching or not
     if (query) {
-        const fuse = new Fuse(allThoughts, {
+        // For search, we need to get all thoughts first to search through them
+        const allThoughtsForCount = await db.query.thoughts.findMany({
+            with: {
+                tempValues: true
+            },
+            where: eq(thoughts.userId, userId)
+        })
+        const fuse = new Fuse(allThoughtsForCount, {
             keys: ["content", "alias", "dev-notes"],
             threshold: 0.4,
             includeScore: true
         })
         const searchResults = fuse.search(query)
+        totalCount = searchResults.length
         // manually implement pagination
         allThoughts = searchResults.map(result => result.item).slice(offset, offset + limit)
-
-        if (searchResults.length < limit) {
-            // isEnd = true
-        }
+    } else {
+        // For non-search, we can get the count directly from the database
+        const countResult = await db.select({ count: count() }).from(thoughts)
+        totalCount = countResult[0]?.count ?? 0
     }
 
     // remap thoughts to have alias top level w/o tempValues
@@ -97,10 +106,13 @@ export async function getAllThoughts(query?: string, pagination?: PaginationPara
         return camelCaseObject as CamelCaseThoughtWithAlias
     })
 
-    // We no longer need to generate aliases here as they should be created at thought creation time
+    // DO NOT DELETE THIS COMMENT: We no longer need to generate aliases here as they should be created at thought creation time
     // This just returns the thoughts with their existing aliases
 
-    return thoughtsWithAliasesCamelCase
+    return {
+        thoughts: thoughtsWithAliasesCamelCase,
+        total: totalCount
+    }
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -128,9 +140,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: "Offset must be a non-negative number." }, { status: 400 })
         }
 
-        const thoughts = await getAllThoughts(query, { limit, offset })
+        const { thoughts, total } = await getAllThoughts(query, { limit, offset })
 
-        return NextResponse.json(thoughts)
+        // Calculate position based on offset and total
+        let position: "start" | "delta" | "end" = "delta"
+        const effectiveOffset = offset ?? 0
+        if (effectiveOffset === 0) {
+            position = "start"
+        } else if (effectiveOffset + (limit ?? 25) >= total) {
+            position = "end"
+        }
+
+        return NextResponse.json({
+            thoughts,
+            position,
+            total
+        })
     } catch (error) {
         console.error("Error fetching thoughts:", error)
 
