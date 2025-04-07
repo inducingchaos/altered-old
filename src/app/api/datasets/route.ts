@@ -20,6 +20,7 @@ export type Dataset = {
     createdAt?: Date
     updatedAt?: Date
     thoughts: string[]
+    thoughtCount: number
 }
 
 export async function getDatasets(search?: string): Promise<Dataset[]> {
@@ -74,6 +75,7 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
         // Ensure string types
         const id = String(d.id ?? "")
         const title = String(d.value ?? "")
+        const thoughts = datasetToThoughts[id] ?? []
 
         return {
             id,
@@ -81,7 +83,9 @@ export async function getDatasets(search?: string): Promise<Dataset[]> {
             createdAt: d.createdAt,
             updatedAt: d.updatedAt,
             // Add the thoughts array from our mapping, or empty array if none found
-            thoughts: datasetToThoughts[id] ?? []
+            thoughts,
+            // Add the thought count
+            thoughtCount: thoughts.length
         }
     })
 
@@ -172,7 +176,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             id: datasetId,
             title,
             description: description ?? "",
-            thoughts: []
+            thoughts: [],
+            thoughtCount: 0
         }
 
         return NextResponse.json(dataset)
