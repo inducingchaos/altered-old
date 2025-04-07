@@ -282,8 +282,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
                 if (actualKey === "datasets") {
                     try {
-                        // Validate datasets array
-                        const newDatasets = JSON.parse(value as string) as string[]
+                        // Validate datasets array - value should already be an array from the frontend
+                        const newDatasets = Array.isArray(value)
+                            ? (value as string[])
+                            : (JSON.parse(value as string) as string[])
                         if (!Array.isArray(newDatasets)) {
                             return NextResponse.json(
                                 {
