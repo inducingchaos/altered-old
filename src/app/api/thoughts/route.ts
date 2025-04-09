@@ -104,7 +104,18 @@ export async function getAllThoughts(
         // Apply search if any
         if (query) {
             const fuse = new Fuse(filteredThoughts, {
-                keys: ["content", "alias", "dev-notes"],
+                keys: [
+                    "content",
+                    {
+                        name: "tempValues",
+                        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                        getFn: thought => {
+                            const alias = thought.tempValues.find(tv => tv.key === "alias")?.value ?? ""
+                            const devNotes = thought.tempValues.find(tv => tv.key === "dev-notes")?.value ?? ""
+                            return `${alias} ${devNotes}`
+                        }
+                    }
+                ],
                 threshold: 0.4,
                 includeScore: true
             })
