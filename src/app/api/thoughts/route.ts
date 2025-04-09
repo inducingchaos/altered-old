@@ -12,6 +12,7 @@ import { createNetworkResponse } from "~/packages/sdkit/src/utils/network"
 import { db } from "~/server/data"
 import { thoughts } from "~/server/data/schemas/iiinput"
 import type { Thought } from "~/server/data/schemas/iiinput/thoughts"
+import type { Temp } from "~/server/data/schemas/iiinput/temp"
 
 export function isAuthedSimple(request: NextRequest): boolean {
     const authHeader = request.headers.get("Authorization")
@@ -26,50 +27,111 @@ type PaginationParams = {
     offset?: number
 }
 
+type FilterParams = {
+    validated?: boolean
+    datasetId?: string
+}
+
+type ThoughtWithTemp = Thought & {
+    tempValues: Temp[]
+}
+
 export async function getAllThoughts(
     query?: string,
-    pagination?: PaginationParams
+    pagination?: PaginationParams,
+    filters?: FilterParams
 ): Promise<{
     thoughts: CamelCaseThoughtWithAlias[]
     total: number
 }> {
     const userId = process.env.ME ?? ""
     const { limit = 25, offset = 0 } = pagination ?? {}
+    const { validated, datasetId } = filters ?? {}
 
-    // Get total count first
     let totalCount = 0
-    let allThoughts = await db.query.thoughts.findMany({
-        with: {
-            tempValues: true
-        },
-        where: eq(thoughts.userId, userId),
-        orderBy: desc(thoughts.updatedAt),
-        limit: query ? undefined : limit,
-        offset: query ? undefined : offset
-    })
+    let allThoughts: ThoughtWithTemp[] = []
 
-    // Get total count based on whether we're searching or not
-    if (query) {
-        // For search, we need to get all thoughts first to search through them
-        const allThoughtsForCount = await db.query.thoughts.findMany({
+    // Filter by validation status and dataset if needed
+    const filterThoughts = (thoughts: ThoughtWithTemp[]): ThoughtWithTemp[] => {
+        let filtered = thoughts
+
+        // Filter by validation status if specified
+        if (validated !== undefined) {
+            filtered = filtered.filter(t => {
+                const validatedValue = t.tempValues.find(tv => tv.key === "validated")?.value
+                // If no validation value exists, treat as false
+                if (!validatedValue) {
+                    return validated === false
+                }
+                return validatedValue === String(validated)
+            })
+        }
+
+        // Filter by dataset if specified
+        if (datasetId) {
+            filtered = filtered.filter(t => {
+                const datasetsValue = t.tempValues.find(tv => tv.key === "datasets")?.value
+                try {
+                    const datasets = JSON.parse(String(datasetsValue ?? "[]")) as string[]
+                    return datasets.includes(datasetId)
+                } catch {
+                    return false
+                }
+            })
+        }
+
+        return filtered
+    }
+
+    // Get all thoughts if we need filtering
+    if (query || validated !== undefined || datasetId) {
+        // Get all thoughts since we need to filter
+        allThoughts = await db.query.thoughts.findMany({
             with: {
                 tempValues: true
             },
-            where: eq(thoughts.userId, userId)
+            where: eq(thoughts.userId, userId),
+            orderBy: desc(thoughts.updatedAt)
         })
-        const fuse = new Fuse(allThoughtsForCount, {
-            keys: ["content", "alias", "dev-notes"],
-            threshold: 0.4,
-            includeScore: true
-        })
-        const searchResults = fuse.search(query)
-        totalCount = searchResults.length
-        // manually implement pagination
-        allThoughts = searchResults.map(result => result.item).slice(offset, offset + limit)
+
+        let filteredThoughts = allThoughts
+
+        // Apply filters if any
+        if (validated !== undefined || datasetId) {
+            filteredThoughts = filterThoughts(filteredThoughts)
+        }
+
+        // Apply search if any
+        if (query) {
+            const fuse = new Fuse(filteredThoughts, {
+                keys: ["content", "alias", "dev-notes"],
+                threshold: 0.4,
+                includeScore: true
+            })
+            const searchResults = fuse.search(query)
+            filteredThoughts = searchResults.map(result => result.item)
+        }
+
+        // Get total count before pagination
+        totalCount = filteredThoughts.length
+
+        // Apply pagination after filtering/searching
+        allThoughts = filteredThoughts.slice(offset, offset + limit)
     } else {
-        // For non-search, we can get the count directly from the database
+        // No filters or search, we can use the DB-level pagination and count
         const countResult = await db.select({ count: count() }).from(thoughts)
         totalCount = countResult[0]?.count ?? 0
+
+        // Get paginated thoughts
+        allThoughts = await db.query.thoughts.findMany({
+            with: {
+                tempValues: true
+            },
+            where: eq(thoughts.userId, userId),
+            orderBy: desc(thoughts.updatedAt),
+            limit,
+            offset
+        })
     }
 
     // remap thoughts to have alias top level w/o tempValues
@@ -131,6 +193,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined
         const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!) : undefined
 
+        // Parse new filter params
+        const validatedParam = searchParams.get("validated")
+        const validated = validatedParam === "true" ? true : validatedParam === "false" ? false : undefined
+        const dataset = searchParams.get("dataset") ?? undefined
+
         // Validate pagination parameters
         if (limit !== undefined && (isNaN(limit) || limit < 1 || limit > 100)) {
             return NextResponse.json({ error: "Limit must be between 1 and 100." }, { status: 400 })
@@ -140,7 +207,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: "Offset must be a non-negative number." }, { status: 400 })
         }
 
-        const { thoughts, total } = await getAllThoughts(query, { limit, offset })
+        const { thoughts, total } = await getAllThoughts(query, { limit, offset }, { validated, datasetId: dataset })
 
         // Calculate position based on offset and total
         let position: "start" | "delta" | "end" = "delta"
