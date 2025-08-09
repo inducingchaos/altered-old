@@ -4,21 +4,27 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { timestamp, unique, varchar } from "drizzle-orm/mysql-core"
+// import { timestamp, unique, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, unique, varchar } from "drizzle-orm/pg-core"
 import { users } from "."
-import { createAlteredMysqlTable } from "../helpers"
+// import { createAlteredMysqlTable } from "../helpers"
+import { createAlteredPgTable } from "../helpers"
 import { id } from "../../helpers"
 
 export const accountTypes = ["email", "password", "google"] as const
 
-export const accounts = createAlteredMysqlTable(
+// export const accounts = createAlteredMysqlTable(
+export const accounts = createAlteredPgTable(
     "accounts",
     {
         id,
-        userId: varchar("user_id", { length: 255 }).notNull(),
+        // MySQL: userId: varchar("user_id", { length: 255 }).notNull(),
+        userId: varchar("user_id").notNull(),
 
-        type: varchar("type", { length: 255, enum: accountTypes }).notNull(),
-        providerId: varchar("provider_id", { length: 255 }).notNull(),
+        // MySQL: type: varchar("type", { length: 255, enum: accountTypes }).notNull(),
+        type: varchar("type").notNull(),
+        // MySQL: providerId: varchar("provider_id", { length: 255 }).notNull(),
+        providerId: varchar("provider_id").notNull(),
 
         verifiedAt: timestamp("verified_at")
     },

@@ -4,14 +4,18 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { varchar } from "drizzle-orm/mysql-core"
+// import { varchar } from "drizzle-orm/mysql-core"
+import { varchar } from "drizzle-orm/pg-core"
 import { accounts, profiles, tokens } from "."
 import { createdAt, id, updatedAt } from "../../helpers"
-import { createAlteredMysqlTable } from "../helpers"
+// import { createAlteredMysqlTable } from "../helpers"
+import { createAlteredPgTable } from "../helpers"
 
-export const users = createAlteredMysqlTable("users", {
+// export const users = createAlteredMysqlTable("users", {
+export const users = createAlteredPgTable("users", {
     id,
-    name: varchar("name", { length: 255 }),
+    // MySQL: name: varchar("name", { length: 255 }),
+    name: varchar("name"),
 
     createdAt,
     updatedAt

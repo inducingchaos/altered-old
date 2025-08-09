@@ -4,22 +4,29 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { timestamp, varchar } from "drizzle-orm/mysql-core"
+// import { timestamp, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, varchar, text } from "drizzle-orm/pg-core"
 import { nanoid } from "nanoid"
 import { users } from "./auth"
-import { createAlteredMysqlTable } from "./helpers"
+import { createAlteredPgTable } from "./helpers"
 
-export const profiles = createAlteredMysqlTable("profiles", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-    userId: varchar("user_id", { length: 255 }).notNull(),
+export const profiles = createAlteredPgTable("profiles", {
+    // MySQL: id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+    id: varchar("id").primaryKey().$defaultFn(nanoid),
+    // MySQL: userId: varchar("user_id", { length: 255 }).notNull(),
+    userId: varchar("user_id").notNull(),
 
-    username: varchar("username", { length: 255 }).unique(),
-    bio: varchar("bio", { length: 255 }),
+    // MySQL: username: varchar("username", { length: 255 }).unique(),
+    username: varchar("username").unique(),
+    // MySQL: bio: varchar("bio", { length: 255 }),
+    bio: text("bio"),
 
-    imageAttachmentId: varchar("image_attachment_id", { length: 255 }),
+    // MySQL: imageAttachmentId: varchar("image_attachment_id", { length: 255 }),
+    imageAttachmentId: varchar("image_attachment_id"),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+    // MySQL: updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
 })
 
 export const profilesRelations = relations(profiles, ({ one }) => ({

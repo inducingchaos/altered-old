@@ -3,22 +3,30 @@
  */
 
 import { relations } from "drizzle-orm"
-import { timestamp, varchar } from "drizzle-orm/mysql-core"
+// import { timestamp, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, varchar } from "drizzle-orm/pg-core"
 import { nanoid } from "nanoid"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
-import { createIiinputMysqlTable } from "./helpers"
+// import { createIiinputMysqlTable } from "./helpers"
+import { createIiinputPgTable } from "./helpers"
 import { thoughts } from "./thoughts"
 
-export const attachments = createIiinputMysqlTable("attachments", {
-    id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-    userId: varchar("user_id", { length: 255 }).notNull(),
-    thoughtId: varchar("thought_id", { length: 255 }).notNull(),
+// export const attachments = createIiinputMysqlTable("attachments", {
+export const attachments = createIiinputPgTable("attachments", {
+    // MySQL: id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+    id: varchar("id").primaryKey().$defaultFn(nanoid),
+    // MySQL: userId: varchar("user_id", { length: 255 }).notNull(),
+    userId: varchar("user_id").notNull(),
+    // MySQL: thoughtId: varchar("thought_id", { length: 255 }).notNull(),
+    thoughtId: varchar("thought_id").notNull(),
 
-    url: varchar("url", { length: 2048 }).notNull(),
+    // MySQL: url: varchar("url", { length: 2048 }).notNull(),
+    url: varchar("url").notNull(),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+    // MySQL: updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
 })
 
 export const attachmentsRelations = relations(attachments, ({ one }) => ({

@@ -2,8 +2,12 @@
  *
  */
 
-import { createMysqlTable } from "@sdkit/utils/db/schema"
+import { createPgTable } from "@sdkit/utils/db/schema"
 
-export const createAlteredMysqlTable = createMysqlTable({
+// export const createAlteredMysqlTable = createMysqlTable({
+//     for: "ALTERED"
+// })
+
+export const createAlteredPgTable = createPgTable({
     for: "ALTERED"
 })

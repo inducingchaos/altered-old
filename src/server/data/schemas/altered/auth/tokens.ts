@@ -4,21 +4,28 @@
 
 import type { CreateDataTypes } from "@sdkit/utils/db/schema"
 import { relations } from "drizzle-orm"
-import { timestamp, varchar } from "drizzle-orm/mysql-core"
+// import { timestamp, varchar } from "drizzle-orm/mysql-core"
+import { timestamp, varchar } from "drizzle-orm/pg-core"
 import { nanoid } from "nanoid"
 import { users } from "."
-import { createAlteredMysqlTable } from "../helpers"
+// import { createAlteredMysqlTable } from "../helpers"
+import { createAlteredPgTable } from "../helpers"
 
 export const tokenTypes = ["password-reset", "email-verification", "magic-link", "session", "push-notification"] as const
 
-export const tokens = createAlteredMysqlTable(
+// export const tokens = createAlteredMysqlTable(
+export const tokens = createAlteredPgTable(
     "tokens",
     {
-        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-        userId: varchar("user_id", { length: 255 }).notNull(),
+        // MySQL: id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+        id: varchar("id").primaryKey().$defaultFn(nanoid),
+        // MySQL: userId: varchar("user_id", { length: 255 }).notNull(),
+        userId: varchar("user_id").notNull(),
 
-        type: varchar("type", { length: 255, enum: tokenTypes }).notNull(),
-        value: varchar("value", { length: 768 }).notNull(),
+        // MySQL: type: varchar("type", { length: 255, enum: tokenTypes }).notNull(),
+        type: varchar("type").notNull(),
+        // MySQL: value: varchar("value", { length: 768 }).notNull(),
+        value: varchar("value").notNull(),
 
         expiresAt: timestamp("expires_at").notNull()
     }

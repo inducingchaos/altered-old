@@ -3,23 +3,23 @@
  */
 
 import { relations } from "drizzle-orm"
-import { index, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { index, timestamp, varchar } from "drizzle-orm/pg-core"
 import { nanoid } from "nanoid"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
-import { createIiinputMysqlTable } from "./helpers"
+import { createIiinputPgTable } from "./helpers"
 import { thoughtsToTags } from "./joins"
 
-export const tags = createIiinputMysqlTable(
+export const tags = createIiinputPgTable(
     "tags",
     {
-        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-        userId: varchar("user_id", { length: 255 }).notNull(),
+        id: varchar("id").primaryKey().$defaultFn(nanoid),
+        userId: varchar("user_id").notNull(),
 
-        name: varchar("name", { length: 255 }).notNull().unique(),
+        name: varchar("name").notNull().unique(),
 
         createdAt: timestamp("created_at").notNull().defaultNow(),
-        updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+        updatedAt: timestamp("updated_at").notNull().defaultNow()
     },
     tag => [index("name_idx").on(tag.name)]
 )

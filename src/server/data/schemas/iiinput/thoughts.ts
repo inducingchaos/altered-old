@@ -3,26 +3,33 @@
  */
 
 import { relations } from "drizzle-orm"
-import { text, timestamp, varchar } from "drizzle-orm/mysql-core"
+// import { text, timestamp, varchar } from "drizzle-orm/mysql-core"
+import { text, timestamp, varchar } from "drizzle-orm/pg-core"
 import { nanoid } from "nanoid"
 import type { CreateDataTypes } from "~/packages/sdkit/src/utils/db/schema"
 import { users } from "../altered"
 import { attachments } from "./attachments"
-import { createIiinputMysqlTable } from "./helpers"
+// import { createIiinputMysqlTable } from "./helpers"
+import { createIiinputPgTable } from "./helpers"
 import { thoughtsToTags } from "./joins"
 import { temp } from "./temp"
 
-export const thoughts = createIiinputMysqlTable(
+// export const thoughts = createIiinputMysqlTable(
+export const thoughts = createIiinputPgTable(
     "thoughts",
     {
-        id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
-        userId: varchar("user_id", { length: 255 }).notNull(),
+        // MySQL: id: varchar("id", { length: 255 }).primaryKey().$defaultFn(nanoid),
+        id: varchar("id").primaryKey().$defaultFn(nanoid),
+        // MySQL: userId: varchar("user_id", { length: 255 }).notNull(),
+        userId: varchar("user_id").notNull(),
 
         content: text("content").notNull(),
-        attachmentId: varchar("attachment_id", { length: 255 }),
+        // MySQL: attachmentId: varchar("attachment_id", { length: 255 }),
+        attachmentId: varchar("attachment_id"),
 
         createdAt: timestamp("created_at").notNull().defaultNow(),
-        updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+        // MySQL: updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow()
+        updatedAt: timestamp("updated_at").notNull().defaultNow()
     }
     // thought => [index("content_idx").on(thought.content)]
 )
